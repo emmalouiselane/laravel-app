@@ -5,7 +5,7 @@
   startCommand = "php -S 0.0.0.0:${PORT} public/index.php"
 
 [deploy]
-  startCommand = "php artisan migrate --force && php artisan serve"
+  startCommand = "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=${PORT}"
 
 [environment]
   NODE_VERSION = "18"
