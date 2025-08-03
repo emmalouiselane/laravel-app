@@ -1,6 +1,6 @@
 [build]
-  builder = "nixpacks.toml"
-  buildCommand = "composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev"
+  builder = "nixpacks"
+  buildCommand = "composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev && npm ci && npm run build"
   installCommand = "php artisan key:generate --force"
   startCommand = "php artisan serve --host=0.0.0.0 --port=${PORT}"
 
@@ -8,6 +8,6 @@
   startCommand = "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=${PORT}"
 
 [environment]
-  NODE_VERSION = "18.x"
+  NODE_VERSION = "18"
   PHP_VERSION = "8.2"
-  COMPOSER_VERSION = "2.6.4"
+  COMPOSER_VERSION = "2.6"
