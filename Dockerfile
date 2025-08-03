@@ -41,15 +41,18 @@ RUN composer install --no-interaction --prefer-dist --optimize-autoloader --no-d
 # Build assets
 RUN npm ci && npm run build
 
-# Set up storage and cache
-RUN php artisan storage:link \
-    && php artisan optimize:clear \
-    && php artisan config:cache \
-    && php artisan route:cache \
-    && php artisan view:cache
+# Set up storage
+RUN php artisan storage:link
 
-# Expose port 8000 and start the server
+# Copy the entrypoint script
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+# Expose port 8000
 EXPOSE 8000
 
+# Set the entrypoint script
+ENTRYPOINT ["docker-entrypoint.sh"]
+
 # Start the application
-CMD php artisan serve --host=0.0.0.0 --port=8000
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
