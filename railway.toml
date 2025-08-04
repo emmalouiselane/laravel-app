@@ -2,10 +2,10 @@
   builder = "nixpacks"
   buildCommand = "composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev && npm ci && npm run build"
   installCommand = "php artisan key:generate --force"
-  startCommand = "php -S 0.0.0.0:${PORT} public/index.php"
+  startCommand = "./start-server"
 
 [deploy]
-  startCommand = "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=${PORT}"
+  startCommand = "php artisan migrate --force && ./start-server"
 
 [environment]
   NODE_VERSION = "18"
