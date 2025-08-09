@@ -7,6 +7,11 @@
     <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noodp, noimageindex, notranslate, nocache">
     <title>@yield('title', config('app.name', 'Laravel'))</title>
     
+    <!-- Favicon -->
+    <link rel="icon" href="{{ asset('images/profile-pic.png') }}" type="image/png">
+    <link rel="shortcut icon" href="{{ asset('images/profile-pic.png') }}" type="image/png">
+    <link rel="apple-touch-icon" href="{{ asset('images/profile-pic.png') }}">
+    
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     

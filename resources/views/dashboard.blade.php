@@ -66,7 +66,6 @@
             <img src="{{ $user->avatar }}" alt="User Avatar" class="w-full h-full object-cover rounded-full">
         </div>
         <h2 class="text-xl font-semibold text-center mb-2">Welcome back, {{ $user->name }}!</h2>
-        <p class="text-gray-600 text-center mb-6">You're logged in with Google ({{ $user->email }})</p>
         
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
             <div class="bg-gray-50 p-4 rounded-lg text-center">
