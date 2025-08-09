@@ -34,7 +34,7 @@ ksort($timezoneOptions);
 @endphp
 
 <style>
-    .dashboard-container {
+    .account-container {
         max-width: 1200px;
         margin: 0 auto;
         padding: 2rem;
@@ -63,7 +63,7 @@ ksort($timezoneOptions);
 @endpush
 
 @section('content')
-<div class="dashboard-container">
+<div class="account-container">
     <header class="flex justify-between items-center mb-8">
         <h1 class="text-2xl font-bold">Account</h1>
         <div class="flex gap-2">
@@ -98,95 +98,95 @@ ksort($timezoneOptions);
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
             <div class="bg-gray-50 p-4 rounded-lg">
-                <h3 class="font-medium mb-2">Account Details
-                        <x-bladewind::button.circle 
-                            icon="pencil"
-                            outline="true"
-                            size="tiny"
-                            onclick="document.getElementById('editAccountModal').classList.remove('hidden')"
-                        >
-                        </x-bladewind::button.circle>
-                        
-                        <!-- Simple Modal -->
-                        <div id="editAccountModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                            <form id="timezoneForm" method="POST" action="{{ route('account.update-timezone') }}" class="bg-white rounded-lg w-full max-w-md">
-                                @csrf
-                                @method('PATCH')
-                                <div class="p-4 border-b flex justify-between items-center">
-                                    <h3 class="font-semibold">Edit Account</h3>
-                                    <button type="button" onclick="closeModal()" class="text-gray-500 hover:text-gray-700">
-                                        ✕
-                                    </button>
-                                </div>
-                                <div class="p-4">
-                                    @if($errors->any())
-                                        <div class="mb-4 p-3 bg-red-100 text-red-700 rounded">
-                                            {{ $errors->first() }}
-                                        </div>
-                                    @endif
-                                    <div class="mb-4">
-                                        <label for="timezone" class="block text-sm font-medium mb-1">Timezone:</label>
-                                        <select name="timezone" id="timezone" class="w-full p-2 border rounded select2">
-                                            @foreach($timezoneOptions as $value => $label)
-                                                <option value="{{ $value }}" {{ old('timezone', $user->timezone) === $value ? 'selected' : '' }}>
-                                                    {{ $label }}
-                                                </option>
-                                            @endforeach
-                                        </select>
+                <h3 class="font-medium mb-2 flex justify-between">Account Details
+                    <x-bladewind::button.circle 
+                        icon="pencil"
+                        outline="true"
+                        size="tiny"
+                        onclick="document.getElementById('editAccountModal').classList.remove('hidden')"
+                    >
+                    </x-bladewind::button.circle>
+                    
+                    <!-- Simple Modal -->
+                    <div id="editAccountModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                        <form id="timezoneForm" method="POST" action="{{ route('account.update-timezone') }}" class="bg-white rounded-lg w-full max-w-md">
+                            @csrf
+                            @method('PATCH')
+                            <div class="p-4 border-b flex justify-between items-center">
+                                <h3 class="font-semibold">Edit Account</h3>
+                                <button type="button" onclick="closeModal()" class="text-gray-500 hover:text-gray-700">
+                                    ✕
+                                </button>
+                            </div>
+                            <div class="p-4">
+                                @if($errors->any())
+                                    <div class="mb-4 p-3 bg-red-100 text-red-700 rounded">
+                                        {{ $errors->first() }}
                                     </div>
+                                @endif
+                                <div class="mb-4">
+                                    <label for="timezone" class="block text-sm font-medium mb-1">Timezone:</label>
+                                    <select name="timezone" id="timezone" class="w-full p-2 border rounded select2">
+                                        @foreach($timezoneOptions as $value => $label)
+                                            <option value="{{ $value }}" {{ old('timezone', $user->timezone) === $value ? 'selected' : '' }}>
+                                                {{ $label }}
+                                            </option>
+                                        @endforeach
+                                    </select>
                                 </div>
-                                <div class="p-4 border-t flex justify-end space-x-2">
-                                    <button type="button" onclick="closeModal()" class="px-4 py-2 text-sm bg-gray-200 rounded hover:bg-gray-300">
-                                        Cancel
-                                    </button>
-                                    <button type="submit" class="px-4 py-2 text-sm bg-primary-500 text-white rounded hover:bg-primary-600">
-                                        Save Changes
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                        
-                        @push('scripts')
-                        <script>
-                            document.addEventListener('DOMContentLoaded', function() {
-                                function closeModal() {
-                                    document.getElementById('editAccountModal').classList.add('hidden');
+                            </div>
+                            <div class="p-4 border-t flex justify-end space-x-2">
+                                <button type="button" onclick="closeModal()" class="px-4 py-2 text-sm bg-gray-200 rounded hover:bg-gray-300">
+                                    Cancel
+                                </button>
+                                <button type="submit" class="px-4 py-2 text-sm bg-primary-500 text-white rounded hover:bg-primary-600">
+                                    Save Changes
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    @push('scripts')
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            function closeModal() {
+                                document.getElementById('editAccountModal').classList.add('hidden');
+                            }
+
+                            // Make closeModal available globally
+                            window.closeModal = closeModal;
+
+                            function initSelect2() {
+                                // Destroy existing instance if it exists
+                                if ($('#timezone').hasClass('select2-hidden-accessible')) {
+                                    $('#timezone').select2('destroy');
                                 }
 
-                                // Make closeModal available globally
-                                window.closeModal = closeModal;
-
-                                function initSelect2() {
-                                    // Destroy existing instance if it exists
-                                    if ($('#timezone').hasClass('select2-hidden-accessible')) {
-                                        $('#timezone').select2('destroy');
-                                    }
-
-                                    // Initialize Select2
-                                    $('#timezone').select2({
-                                        theme: 'bootstrap-5',
-                                        width: '100%',
-                                        placeholder: 'Search for a timezone...',
-                                        allowClear: true,
-                                        dropdownParent: $('#editAccountModal')
-                                    });
-                                }
-
-                                // Initialize when clicking the edit button
-                                document.querySelector('[onclick*="editAccountModal"]')?.addEventListener('click', function() {
-                                    // Small timeout to ensure the modal is visible
-                                    setTimeout(initSelect2, 100);
+                                // Initialize Select2
+                                $('#timezone').select2({
+                                    theme: 'bootstrap-5',
+                                    width: '100%',
+                                    placeholder: 'Search for a timezone...',
+                                    allowClear: true,
+                                    dropdownParent: $('#editAccountModal')
                                 });
+                            }
 
-                                // Clean up on modal close
-                                document.getElementById('editAccountModal')?.addEventListener('hidden.bs.modal', function () {
-                                    if ($('#timezone').hasClass('select2-hidden-accessible')) {
-                                        $('#timezone').select2('destroy');
-                                    }
-                                });
+                            // Initialize when clicking the edit button
+                            document.querySelector('[onclick*="editAccountModal"]')?.addEventListener('click', function() {
+                                // Small timeout to ensure the modal is visible
+                                setTimeout(initSelect2, 100);
                             });
-                        </script>
-                        @endpush
+
+                            // Clean up on modal close
+                            document.getElementById('editAccountModal')?.addEventListener('hidden.bs.modal', function () {
+                                if ($('#timezone').hasClass('select2-hidden-accessible')) {
+                                    $('#timezone').select2('destroy');
+                                }
+                            });
+                        });
+                    </script>
+                    @endpush
                 </h3>
                 <p class="text-sm text-gray-600">Name: {{ $user->name }}</p>
                 <p class="text-sm text-gray-600">Email: {{ $user->email }}</p>

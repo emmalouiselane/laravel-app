@@ -19,6 +19,16 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/account', [AccountController::class, 'index'])->name('account');
     Route::patch('/account/timezone', [AccountController::class, 'updateTimezone'])->name('account.update-timezone');
     
+    // Planner routes
+    Route::prefix('planner')->name('planner.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\PlannerController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\PlannerController::class, 'store'])->name('store');
+        Route::get('/{todo}/edit', [\App\Http\Controllers\PlannerController::class, 'edit'])->name('edit');
+        Route::patch('/{todo}/toggle', [\App\Http\Controllers\PlannerController::class, 'toggleComplete'])->name('toggle-complete');
+        Route::put('/{todo}', [\App\Http\Controllers\PlannerController::class, 'update'])->name('update');
+        Route::delete('/{todo}', [\App\Http\Controllers\PlannerController::class, 'destroy'])->name('destroy');
+    });
+    
     // Logout route
     Route::post('/logout', function (\Illuminate\Http\Request $request) {
         Auth::logout();

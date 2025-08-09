@@ -70,7 +70,15 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
             <div class="bg-gray-50 p-4 rounded-lg text-center">
                 <h3 class="font-medium mb-2">Planner</h3>
-                <p class="text-sm text-gray-600">Coming Soon</p>
+                
+                <a href="{{ route('planner.index') }}">
+                    <x-bladewind::button 
+                        type="primary"
+                        size="small"
+                    >
+                        {{ __('Planner') }}
+                    </x-bladewind::button>
+                </a>
             </div>
         </div>
     </div>

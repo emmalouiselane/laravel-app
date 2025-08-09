@@ -1,0 +1,476 @@
+@extends('layouts.app')
+
+@section('title', 'Daily Planner')
+
+@push('styles')
+<style>
+    .planner-header {
+        display: flex;
+        justify-content: end;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+    
+    .date-navigation {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .date-display {
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+    
+    .todo-item {
+        display: flex;
+        align-items: flex-start;
+        padding: 1rem;
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        margin-bottom: 0.75rem;
+    }
+    
+    .todo-item.completed {
+        opacity: 0.7;
+    }
+    
+    .todo-checkbox {
+        margin-right: 1rem;
+        margin-top: 0.25rem;
+    }
+    
+    .todo-content {
+        flex: 1;
+    }
+    
+    .todo-title {
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+    
+    .todo-description {
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+    
+    .todo-time {
+        color: #6b7280;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+    
+    .todo-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .add-todo-form {
+        background: white;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1.5rem;
+    }
+</style>
+@endpush
+
+@section('content')
+<div class="container mx-auto p-4">
+<header class="flex justify-between items-center mb-4">
+        <h1 class="text-2xl font-bold">Planner</h1>
+
+        <div class="flex gap-2">
+            <a href="{{ route('dashboard') }}">
+                <x-bladewind::button 
+                    type="primary"
+                    size="small"
+                >
+                    {{ __('Dashboard') }}
+                </x-bladewind::button>
+            </a>
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <x-bladewind::button 
+                    type="secondary"
+                    size="small"
+                    color="gray"
+                    can_submit="true"
+                >
+                    {{ __('Log Out') }}
+                </x-bladewind::button>
+            </form>
+        </div>
+    </header>
+    
+    <div class="planner-header">
+        <div class="date-navigation">
+            @if($date->toDateString() !== $today)
+                <a href="{{ route('planner.index') }}" 
+                   class="px-3 py-1 bg-primary-100 text-primary-600 rounded hover:bg-primary-200 text-sm">
+                    Today
+                </a>
+            @endif
+
+            <a href="{{ route('planner.index', ['date' => $previousDate]) }}" 
+               class="px-3 py-1 bg-gray-100 rounded hover:bg-gray-200">
+                &larr;
+            </a>
+            <span class="date-display">
+                @if($date->toDateString() === $today)
+                   Today
+                @else
+                    {{ $date->format('F j, Y') }}
+                @endif 
+            </span>
+            <a href="{{ route('planner.index', ['date' => $nextDate]) }}" 
+               class="px-3 py-1 bg-gray-100 rounded hover:bg-gray-200">
+                &rarr;
+            </a>
+
+            <!-- Add Todo Form Toggle Button -->
+            <button type="button" 
+                    onclick="toggleAddForm()" 
+                    class="px-3 py-1 bg-primary-600 text-white rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                +
+            </button>
+        </div>
+    </div>
+    
+    <!-- Add Todo Form (initially hidden) -->
+    <div id="addTodoFormContainer" class="hidden mb-6 absolute z-10 right-8">
+        <div class="add-todo-form bg-white rounded-lg shadow p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium">Add New Task</h3>
+                <button type="button" 
+                        onclick="toggleAddForm()" 
+                        class="text-gray-400 hover:text-gray-500 focus:outline-none">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <form action="{{ route('planner.store') }}" method="POST" class="space-y-4">
+                @csrf
+                
+                <div>
+                    <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                    <input type="text" 
+                           id="title"
+                           name="title" 
+                           placeholder="What needs to be done?" 
+                           class="w-full p-2 border rounded focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                           required>
+                </div>
+            
+                <!-- <div>
+                    <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description (optional)</label>
+                    <textarea id="description"
+                            name="description" 
+                            placeholder="Add details"
+                            class="w-full p-2 border rounded focus:ring-2 focus:ring-primary-500 focus:border-transparent"></textarea>
+                </div> -->
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="type" class="block text-sm font-medium text-gray-700 mb-1">Task Type</label>
+                        <select id="type" 
+                                name="type" 
+                                class="w-full p-2 border rounded focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                onchange="toggleTaskTypeFields(this.value, 'add')">
+                            <option value="one_time">One-time Task</option>
+                            <option value="recurring">Recurring Task</option>
+                            <option value="habit">Habit</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="due_date" class="block text-sm font-medium text-gray-700 mb-1">Due Date & Time</label>
+                        <input type="datetime-local" 
+                            id="due_date"
+                            name="due_date" 
+                            value="{{ $date->format('Y-m-d\TH:i') }}" 
+                            class="w-full p-2 border rounded focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                            required>
+                    </div>
+                </div>
+                
+                <!-- Recurring Task Fields -->
+                <div id="addRecurringFields" style="display: none;" class="space-y-4 p-4 bg-gray-50 rounded-lg">
+                    <h3 class="font-medium text-gray-700">Recurrence Settings</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="frequency" class="block text-sm font-medium text-gray-700 mb-1">Frequency</label>
+                            <select id="frequency" 
+                                    name="frequency" 
+                                    class="w-full p-2 border rounded focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                                <option value="daily">Daily</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="monthly">Monthly</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label for="recurrence_ends_at" class="block text-sm font-medium text-gray-700 mb-1">Ends On (optional)</label>
+                            <input type="date" 
+                                id="recurrence_ends_at"
+                                name="recurrence_ends_at" 
+                                class="w-full p-2 border rounded focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Habit Fields -->
+                <div id="addHabitFields" style="display: none;" class="space-y-4 p-4 bg-gray-50 rounded-lg">
+                    <h3 class="font-medium text-gray-700">Habit Settings</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="habit_frequency" class="block text-sm font-medium text-gray-700 mb-1">Frequency</label>
+                            <select id="habit_frequency" 
+                                    name="frequency" 
+                                    class="w-full p-2 border rounded focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                                <option value="daily">Daily</option>
+                                <option value="weekly">Weekly</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label for="target_count" class="block text-sm font-medium text-gray-700 mb-1">Target (per day/week)</label>
+                            <input type="number" 
+                                id="target_count"
+                                name="target_count" 
+                                min="1"
+                                value="1"
+                                class="w-full p-2 border rounded focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <input type="checkbox" 
+                                id="is_skippable" 
+                                name="is_skippable" 
+                                value="1"
+                                checked
+                                class="h-4 w-4 text-primary-600 rounded focus:ring-primary-500">
+                            <label for="is_skippable" class="text-sm text-gray-700">Allow skipping this habit</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end pt-2">
+                    <button type="submit" 
+                            class="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                        Add Task
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Todo List -->
+    <div class="todo-list">
+        @if($todos->isEmpty())
+            <div class="text-center py-8 text-gray-500">
+                <p>No tasks for {{ $date->format('F j, Y') }}. Add one above!</p>
+            </div>
+        @else
+            @foreach($todos as $todo)
+                <div class="todo-item {{ $todo->is_habit ? ($todo->completion_count >= $todo->target_count ? 'completed' : '') : ($todo->completed ? 'completed' : '') }}">
+                    <form action="{{ route('planner.toggle-complete', $todo) }}" method="POST" class="todo-checkbox" onsubmit="toggleTodoComplete(event, {{ $todo->id }})">
+                        @csrf
+                        @method('PATCH')
+                        <input type="hidden" name="date" value="{{ $date->toDateString() }}">
+                        @if($todo->is_habit && $todo->target_count > 1)
+                            <div class="relative">
+                                <input type="checkbox" 
+                                    {{ $todo->completion_count >= $todo->target_count ? 'checked' : '' }}
+                                    onchange="this.form.submit()"
+                                    class="h-5 w-5 text-primary-600 rounded focus:ring-primary-500 cursor-pointer">
+                                @if($todo->completion_count > 0)
+                                    <span class="absolute -top-2 -right-2 bg-primary-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                                        {{ $todo->completion_count }}
+                                    </span>
+                                @endif
+                            </div>
+                        @else
+                            <input type="checkbox" 
+                                {{ ($todo->is_habit ? $todo->completion_count > 0 : $todo->completed) ? 'checked' : '' }}
+                                onchange="this.form.submit()"
+                                class="h-5 w-5 text-primary-600 rounded focus:ring-primary-500 cursor-pointer">
+                        @endif
+                    </form>
+                    <div class="todo-content">
+                        <div class="flex items-center space-x-2">
+                            <span class="todo-title">{{ $todo->title }}</span>
+                            
+                            @if($todo->is_recurring)
+                                <span class="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
+                                    {{ ucfirst($todo->frequency) }}
+                                </span>
+                            @endif
+                            
+                            @if($todo->is_habit)
+                                <span class="text-xs px-2 py-0.5 bg-green-100 text-green-800 rounded-full">
+                                    Habit
+                                    @if($todo->current_streak > 0)
+                                        🔥 {{ $todo->current_streak }}
+                                    @endif
+                                </span>
+                            @endif
+                        </div>
+                        
+                        <div class="flex items-center space-x-4 mt-1">
+                            <div class="todo-time text-sm text-gray-500">
+                                {{ $todo->due_date->setTimezone(auth()->user()->timezone)->format('g:i A') }}
+                            </div>
+                            
+                            @if($todo->is_habit && $todo->target_count > 1)
+                                <div class="flex items-center space-x-1">
+                                    @for($i = 0; $i < $todo->target_count; $i++)
+                                        <div class="w-2 h-2 rounded-full {{ $i < $todo->completion_count ? 'bg-green-500' : 'bg-gray-200' }}"></div>
+                                    @endfor
+                                    <span class="text-xs text-gray-500 ml-1">
+                                        ({{ $todo->completion_count }}/{{ $todo->target_count }})
+                                    </span>
+                                </div>
+                            @endif
+                            
+                            @if($todo->is_recurring && $todo->recurrence_ends_at)
+                                <div class="text-xs text-gray-500">
+                                    Ends {{ $todo->recurrence_ends_at->format('M j, Y') }}
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                    <div class="todo-actions">
+                        <button onclick="editTodo({{ $todo->id }})" 
+                                class="p-1 text-gray-500 hover:text-primary-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                        </button>
+                        <form action="{{ route('planner.destroy', $todo) }}" method="POST" class="inline">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" 
+                                    class="p-1 text-gray-500 hover:text-red-600"
+                                    onclick="return confirm('Are you sure you want to delete this task?')">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            @endforeach
+        @endif
+    </div>
+</div>
+
+<!-- Edit Todo Modal -->
+<div id="editTodoModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg w-full max-w-md p-6" id="editTodoFormContainer">
+        <!-- Will be populated by JavaScript -->
+    </div>
+</div>
+
+@push('scripts')
+<script>
+    // Function to toggle task type specific fields in the add form
+    function toggleTaskTypeFields(type, formType = 'add') {
+        const prefix = formType === 'add' ? 'add' : 'edit';
+        
+        // Hide all field groups first
+        document.getElementById(`${prefix}RecurringFields`).style.display = 'none';
+        document.getElementById(`${prefix}HabitFields`).style.display = 'none';
+        
+        // Show the appropriate field group based on the selected type
+        if (type === 'recurring') {
+            document.getElementById(`${prefix}RecurringFields`).style.display = 'block';
+        } else if (type === 'habit') {
+            document.getElementById(`${prefix}HabitFields`).style.display = 'block';
+        }
+    }
+
+    // Initialize the form fields when the page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set initial state for add form
+        const initialType = document.getElementById('type').value;
+        toggleTaskTypeFields(initialType, 'add');
+        
+        // Set initial state for edit form when it's loaded
+        const editModal = document.getElementById('editTodoModal');
+        if (editModal) {
+            const observer = new MutationObserver(function(mutations) {
+                const editType = document.getElementById('edit_type');
+                if (editType) {
+                    // Set initial state for edit form
+                    toggleTaskTypeFields(editType.value, 'edit');
+                    
+                    // Add event listener for type changes in edit form
+                    editType.addEventListener('change', function() {
+                        toggleTaskTypeFields(this.value, 'edit');
+                    });
+                }
+            });
+            
+            observer.observe(editModal, { childList: true, subtree: true });
+        }
+    });
+
+    function editTodo(todoId) {
+        fetch(`/planner/${todoId}/edit`)
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('editTodoFormContainer').innerHTML = html;
+                document.getElementById('editTodoModal').classList.remove('hidden');
+                
+                // Initialize the edit form fields
+                const editType = document.getElementById('edit_type');
+                if (editType) {
+                    toggleTaskTypeFields(editType.value, 'edit');
+                    
+                    // Add event listener for type changes in edit form
+                    editType.addEventListener('change', function() {
+                        toggleTaskTypeFields(this.value, 'edit');
+                    });
+                }
+            });
+    }
+    
+    // Close modal when clicking outside
+    document.getElementById('editTodoModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            this.classList.add('hidden');
+        }
+    });
+    
+    // Close modal when pressing Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            document.getElementById('editTodoModal').classList.add('hidden');
+            const addForm = document.getElementById('addTodoFormContainer');
+            if (!addForm.classList.contains('hidden')) {
+                addForm.classList.add('hidden');
+            }
+        }
+    });
+    
+    // Toggle add form visibility
+    function toggleAddForm() {
+        const formContainer = document.getElementById('addTodoFormContainer');
+        formContainer.classList.toggle('hidden');
+        
+        // Scroll to form when opening
+        if (!formContainer.classList.contains('hidden')) {
+            formContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            document.getElementById('title').focus();
+        }
+    }
+</script>
+@endpush
+@endsection
