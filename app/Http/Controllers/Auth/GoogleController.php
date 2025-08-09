@@ -32,9 +32,14 @@ class GoogleController extends Controller
                     'email' => $googleUser->getEmail(),
                     'avatar' => $googleUser->getAvatar(),
                     'email_verified_at' => now(),
-                    'timezone' => 'Europe/London', // Default timezone, can be updated later
                 ]
             );
+            
+            // Only set default timezone if it's a new user or timezone is not set
+            if (is_null($user->timezone)) {
+                $user->timezone = 'Europe/London';
+                $user->save();
+            }
 
             // Log in the user
             Auth::login($user, true); // Remember the user
