@@ -54,15 +54,38 @@
     
     @stack('styles')
     <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
         body {
             font-family: 'Inter', sans-serif;
             background-color: #FDFDFC;
             color: #1b1b18;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        main {
+            overflow-y: auto;
+            width: 100%;
+        }
+        footer {
+            flex-shrink: 0;
         }
     </style>
 </head>
-<body class="antialiased">
-    @yield('content')
+<body class="antialiased flex flex-col h-screen">
+    <main class="flex-grow">
+        @yield('content')
+    </main>
+    
+    <footer class="bg-gray-100 py-4 mt-auto">
+        <div class="container mx-auto px-4 text-center text-gray-600 text-sm">
+            Version {{ env('APP_RELEASE', '1.0.0') }}
+        </div>
+    </footer>
     
     <!-- BladewindUI JS -->
     <script src="{{ asset('vendor/bladewind/js/helpers.js') }}"></script>
