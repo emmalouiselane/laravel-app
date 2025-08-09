@@ -25,4 +25,25 @@ class AccountController extends Controller
             'user' => $user
         ]);
     }
+
+    /**
+     * Update the user's timezone.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function updateTimezone(Request $request)
+    {
+        $validated = $request->validate([
+            'timezone' => ['required', 'string', 'timezone'],
+        ]);
+
+        $user = Auth::user();
+        $user->timezone = $validated['timezone'];
+        $user->save();
+
+        return redirect()
+            ->route('account')
+            ->with('success', 'Timezone updated successfully!');
+    }
 }

@@ -17,6 +17,7 @@ Route::get('/auth/google/callback', [GoogleController::class, 'handleGoogleCallb
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/account', [AccountController::class, 'index'])->name('account');
+    Route::patch('/account/timezone', [AccountController::class, 'updateTimezone'])->name('account.update-timezone');
     
     // Logout route
     Route::post('/logout', function (\Illuminate\Http\Request $request) {
