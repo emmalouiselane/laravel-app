@@ -64,6 +64,7 @@
                         icon="pencil"
                         outline="true"
                         size="tiny"
+                        disabled
                     >
                     </x-bladewind::button>
                 </h3>

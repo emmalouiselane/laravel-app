@@ -24,8 +24,11 @@
     <div class="login-container">
         <x-bladewind::card class="max-w-md w-full">
             <div class="text-center mb-6">
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">Welcome Back</h1>
-                <p class="text-gray-600 dark:text-gray-400">Sign in to your account</p>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">Welcome back!</h1>
+            </div>
+
+            <div class="text-center mb-4">
+                <img src="{{ asset('images/profile-pic.png') }}" alt="Spark Lane's Avatar" class="h-16 w-auto mx-auto">
             </div>
 
             <!-- Google Sign In Button -->

@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noodp, noimageindex, notranslate, nocache">
     <title>@yield('title', config('app.name', 'Laravel'))</title>
     
     <!-- Fonts -->
@@ -31,16 +32,16 @@
                 extend: {
                     colors: {
                         primary: {
-                            50: '#f0f9f5',
-                            100: '#dcfce7',
-                            200: '#bbf7d0',
-                            300: '#86efac',
-                            400: '#4ade80',
-                            500: '#22c55e',
-                            600: '#16a34a',
-                            700: '#15803d',
-                            800: '#166534',
-                            900: '#14532d',
+                            50: '#f0faf4',
+                            100: '#dbf5e6',
+                            200: '#b8ebcd',
+                            300: '#8adcac',
+                            400: '#63d688',
+                            500: '#3ac162',
+                            600: '#2b9c4e',
+                            700: '#247b40',
+                            800: '#216136',
+                            900: '#1d4f2e',
                         },
                         secondary: '#FDFDFC',
                         dark: '#1b1b18',
