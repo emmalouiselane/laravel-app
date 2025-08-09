@@ -54,28 +54,6 @@
     </script>
     
     @stack('styles')
-    <style>
-        html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-        }
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #FDFDFC;
-            color: #1b1b18;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
-        main {
-            overflow-y: auto;
-            width: 100%;
-        }
-        footer {
-            flex-shrink: 0;
-        }
-    </style>
 </head>
 <body class="antialiased flex flex-col h-screen">
     <main class="flex-grow">

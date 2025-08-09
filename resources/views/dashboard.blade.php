@@ -37,17 +37,28 @@
 <div class="dashboard-container">
     <header class="flex justify-between items-center mb-8">
         <h1 class="text-2xl font-bold">Dashboard</h1>
-        <form method="POST" action="{{ route('logout') }}">
-            @csrf
-            <x-bladewind::button 
-                type="secondary"
-                size="small"
-                color="gray"
-                can_submit="true"
-            >
-                {{ __('Log Out') }}
-            </x-bladewind::button>
-        </form>
+
+        <div class="flex gap-2">
+            <a href="{{ route('account') }}">
+                <x-bladewind::button 
+                    type="primary"
+                    size="small"
+                >
+                    {{ __('Account') }}
+                </x-bladewind::button>
+            </a>
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <x-bladewind::button 
+                    type="secondary"
+                    size="small"
+                    color="gray"
+                    can_submit="true"
+                >
+                    {{ __('Log Out') }}
+                </x-bladewind::button>
+            </form>
+        </div>
     </header>
     
     <div class="welcome-card">
@@ -57,43 +68,10 @@
         <h2 class="text-xl font-semibold text-center mb-2">Welcome back, {{ $user->name }}!</h2>
         <p class="text-gray-600 text-center mb-6">You're logged in with Google ({{ $user->email }})</p>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-            <div class="bg-gray-50 p-4 rounded-lg">
-                <h3 class="font-medium mb-2">Account Details
-                    <x-bladewind::button.circle 
-                        icon="pencil"
-                        outline="true"
-                        size="tiny"
-                        disabled
-                    >
-                    </x-bladewind::button>
-                </h3>
-                <p class="text-sm text-gray-600">Name: {{ $user->name }}</p>
-                <p class="text-sm text-gray-600">Email: {{ $user->email }}</p>
-                <p class="text-sm text-gray-600">Timezone: {{ $user->timezone }}</p>
-            </div>
-            
-            <div class="bg-gray-50 p-4 rounded-lg">
-                <h3 class="font-medium mb-2">Authentication</h3>
-                <p class="text-sm text-gray-600">Provider: Google</p>
-                <p class="text-sm text-gray-600">Last login: {{ $user->updated_at->format('M d, Y H:i') }}</p>
-            </div>
-        </div>
-        
-        <div class="mt-8 pt-6 border-t border-gray-200">
-            <h3 class="font-medium mb-3">Recent Activity</h3>
-            <div class="space-y-3">
-                <div class="flex items-start">
-                    <div class="flex-shrink-0 h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center">
-                        <svg class="h-4 w-4 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg>
-                    </div>
-                    <div class="ml-3">
-                        <p class="text-sm text-gray-600">You successfully created your account!</p>
-                        <p class="text-xs text-gray-400">{{ $user->created_at->format('M d, Y H:i') }}</p>
-                    </div>
-                </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+            <div class="bg-gray-50 p-4 rounded-lg text-center">
+                <h3 class="font-medium mb-2">Planner</h3>
+                <p class="text-sm text-gray-600">Coming Soon</p>
             </div>
         </div>
     </div>
