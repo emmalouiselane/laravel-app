@@ -196,7 +196,7 @@ ksort($timezoneOptions);
             <div class="bg-gray-50 p-4 rounded-lg">
                 <h3 class="font-medium mb-2">Authentication</h3>
                 <p class="text-sm text-gray-600">Provider: Google</p>
-                <p class="text-sm text-gray-600">Last login: {{ $user->updated_at->setTimezone($user->timezone)->format('M d, Y H:i') }} </p>
+                <p class="text-sm text-gray-600">Last login: {{ $user->updated_at->setTimezone($user->timezone)->format('M d, Y g:i A') }} </p>
             </div>
         </div>
         
@@ -211,7 +211,7 @@ ksort($timezoneOptions);
                     </div>
                     <div class="ml-3">
                         <p class="text-sm text-gray-600">You successfully created your account!</p>
-                        <p class="text-xs text-gray-400">{{ $user->created_at->setTimezone($user->timezone)->format('M d, Y H:i') }}</p>
+                        <p class="text-xs text-gray-400">{{ $user->created_at->setTimezone($user->timezone)->format('M d, Y g:i A') }}</p>
                     </div>
                 </div>
             </div>
