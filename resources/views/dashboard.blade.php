@@ -38,27 +38,11 @@
     <header class="flex justify-between items-center mb-8">
         <h1 class="text-2xl font-bold">Dashboard</h1>
 
-        <div class="flex gap-2">
-            <a href="{{ route('account') }}">
-                <x-bladewind::button 
-                    type="primary"
-                    size="small"
-                >
-                    {{ __('Account') }}
-                </x-bladewind::button>
-            </a>
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <x-bladewind::button 
-                    type="secondary"
-                    size="small"
-                    color="gray"
-                    can_submit="true"
-                >
-                    {{ __('Log Out') }}
-                </x-bladewind::button>
-            </form>
-        </div>
+        <x-auth-buttons 
+            :showDashboard="false"
+            :showAccount="true"
+            :showLogout="true"
+        />
     </header>
     
     <div class="welcome-card">
@@ -69,12 +53,12 @@
         
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
             <div class="bg-gray-50 p-4 rounded-lg text-center">
-                <h3 class="font-medium mb-2">Planner</h3>
-                
                 <a href="{{ route('planner.index') }}">
                     <x-bladewind::button 
                         type="primary"
                         size="small"
+                        uppercasing="false"
+                        button_text_css="text-base"
                     >
                         {{ __('Planner') }}
                     </x-bladewind::button>

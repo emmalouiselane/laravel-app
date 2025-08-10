@@ -9,7 +9,7 @@ use Illuminate\View\View;
 class AccountController extends Controller
 {
     /**
-     * Show the application dashboard.
+     * Show the application account details.
      *
      * @return \Illuminate\View\View
      */

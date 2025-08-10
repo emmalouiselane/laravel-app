@@ -4,6 +4,11 @@
 
 @push('styles')
 <style>
+    .planner-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
     .planner-header {
         display: flex;
         justify-content: end;
@@ -77,31 +82,15 @@
 @endpush
 
 @section('content')
-<div class="container mx-auto p-4">
+<div class="planner-container">
 <header class="flex justify-between items-center mb-4">
         <h1 class="text-2xl font-bold">Planner</h1>
 
-        <div class="flex gap-2">
-            <a href="{{ route('dashboard') }}">
-                <x-bladewind::button 
-                    type="primary"
-                    size="small"
-                >
-                    {{ __('Dashboard') }}
-                </x-bladewind::button>
-            </a>
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <x-bladewind::button 
-                    type="secondary"
-                    size="small"
-                    color="gray"
-                    can_submit="true"
-                >
-                    {{ __('Log Out') }}
-                </x-bladewind::button>
-            </form>
-        </div>
+        <x-auth-buttons 
+            :showDashboard="true"
+            :showAccount="true"
+            :showLogout="true"
+        />
     </header>
     
     <div class="planner-header">
@@ -115,7 +104,7 @@
 
             <a href="{{ route('planner.index', ['date' => $previousDate]) }}" 
                class="px-3 py-1 bg-gray-100 rounded hover:bg-gray-200">
-                &larr;
+               <x-bladewind::icon name="arrow-left" class="size-4" />
             </a>
             <span class="date-display">
                 @if($date->toDateString() === $today)
@@ -126,14 +115,14 @@
             </span>
             <a href="{{ route('planner.index', ['date' => $nextDate]) }}" 
                class="px-3 py-1 bg-gray-100 rounded hover:bg-gray-200">
-                &rarr;
+                <x-bladewind::icon name="arrow-right" class="size-4" />
             </a>
 
             <!-- Add Todo Form Toggle Button -->
             <button type="button" 
                     onclick="toggleAddForm()" 
                     class="px-3 py-1 bg-primary-600 text-white rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
-                +
+                <x-bladewind::icon name="plus" class="size-4" />
             </button>
         </div>
     </div>

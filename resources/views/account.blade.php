@@ -66,27 +66,11 @@ ksort($timezoneOptions);
 <div class="account-container">
     <header class="flex justify-between items-center mb-8">
         <h1 class="text-2xl font-bold">Account</h1>
-        <div class="flex gap-2">
-            <a href="{{ route('dashboard') }}">
-                <x-bladewind::button 
-                    type="primary"
-                    size="small"
-                >
-                    {{ __('Dashboard') }}
-                </x-bladewind::button>
-            </a>
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <x-bladewind::button 
-                    type="secondary"
-                    size="small"
-                    color="gray"
-                    can_submit="true"
-                >
-                    {{ __('Log Out') }}
-                </x-bladewind::button>
-            </form>
-        </div>
+        <x-auth-buttons 
+            :showDashboard="true"
+            :showAccount="false"
+            :showLogout="true"
+        />
     </header>
     
     <div class="welcome-card">

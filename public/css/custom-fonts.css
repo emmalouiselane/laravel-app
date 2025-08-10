@@ -1,0 +1,38 @@
+/* Force Josefin Slab on all elements */
+* {
+    font-family: 'Josefin Slab', serif !important;
+}
+
+/* Override Bladewind's font settings */
+body, 
+input, 
+select, 
+textarea, 
+button,
+.bw-button,
+.bw-input,
+.bw-select,
+.bw-checkbox,
+.bw-radio,
+.bw-toggle,
+.bw-modal,
+.bw-tab,
+.bw-accordion,
+.bw-alert,
+.bw-badge,
+.bw-card,
+.bw-table,
+.bw-pagination,
+.bw-tooltip,
+[class^='bw-'],
+[class*=' bw-'] {
+    font-family: 'Josefin Slab', serif !important;
+}
+
+/* Ensure form elements use the correct font */
+input,
+select,
+textarea,
+button {
+    font-family: 'Josefin Slab', serif !important;
+}

@@ -13,10 +13,13 @@
     <link rel="apple-touch-icon" href="{{ asset('images/profile-pic.png') }}">
     
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Josefin+Slab:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Alpine.js -->
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    
+    <!-- Custom Fonts CSS (must be last) -->
+    <link href="{{ asset('css/custom-fonts.css') }}" rel="stylesheet">
     
     <!-- BladewindUI CSS -->
     <link href="{{ asset('vendor/bladewind/css/animate.min.css') }}" rel="stylesheet" />
@@ -58,7 +61,7 @@
         }
     </script>
 
-<script src="https://tinylytics.app/embed/ZqiXX112qeb4C8pdyGQg.js" defer></script>
+    <script src="https://tinylytics.app/embed/ZqiXX112qeb4C8pdyGQg.js" defer></script>
     
     @stack('styles')
 </head>

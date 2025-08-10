@@ -36,6 +36,8 @@
                 <x-bladewind::button
                     tag="a"
                     href="{{ route('auth.google') }}"
+                    uppercasing="false"
+                    button_text_css="text-base"
                 >
                     <span class="flex">
                         <svg class="google-icon" viewBox="0 0 24 24">
@@ -56,6 +58,8 @@
                     size="small"
                     color="gray"
                     onclick="window.location='https://accounts.google.com/signin/v2/recoveryidentifier'"
+                    uppercasing="false"
+                    button_text_css="text-base"
                 >
                     Forgot your password?
                 </x-bladewind::button>
