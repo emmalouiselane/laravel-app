@@ -338,7 +338,8 @@ class Todo extends Model
     }
     
     /**
-     * Calculate the current streak as of a specific date
+     * Calculate the current streak as of a specific date, taking target count into account
+     * A day is only counted in the streak if the number of completions meets or exceeds the target count
      * @param string|Carbon|null $date The reference date (defaults to today)
      * @return int The current streak length
      */
@@ -347,38 +348,89 @@ class Todo extends Model
         $date = $date ? Carbon::parse($date) : now();
         $date = $date->setTimezone(config('app.timezone'))->startOfDay();
         
-        // Get all unique completion dates up to and including the reference date
+        // Get all completion dates up to and including the reference date
         $completions = $this->completions()
             ->whereDate('completion_date', '<=', $date)
-            ->orderBy('completion_date', 'desc')
-            ->pluck('completion_date')
-            ->map(function ($date) {
-                return Carbon::parse($date)->startOfDay();
+            ->orderBy('completion_date', 'asc')
+            ->get();
+            
+        // Debug: Log raw completions with counts
+        \Log::debug('Raw completions for todo ' . $this->id, [
+            'target_count' => $this->target_count,
+            'completions' => $completions->map(function($c) {
+                return [
+                    'date' => $c->completion_date->toDateTimeString(),
+                    'count' => $c->count
+                ];
             })
-            ->unique()
+        ]);
+            
+        // Group by date and sum the counts
+        $groupedCompletions = $completions->groupBy(function($completion) {
+            return $completion->completion_date->startOfDay()->toDateString();
+        })->map(function($dayCompletions) {
+            return [
+                'date' => $dayCompletions->first()->completion_date->startOfDay(),
+                'total' => $dayCompletions->sum('count')
+            ];
+        })->values();
+        
+        // Debug: Log grouped completions with sums
+        \Log::debug('Grouped completions with sums', 
+            $groupedCompletions->map(function($day) {
+                return [
+                    'date' => $day['date']->toDateString(),
+                    'total' => $day['total']
+                ];
+            })->toArray()
+        );
+            
+        if ($groupedCompletions->isEmpty()) {
+            \Log::debug('No completions found');
+            return 0;
+        }
+        
+        // Filter dates that meet or exceed the target count
+        $completedDates = $groupedCompletions
+            ->filter(function($day) {
+                $meetsTarget = $day['total'] >= $this->target_count;
+                \Log::debug('Checking target', [
+                    'date' => $day['date']->toDateString(),
+                    'total' => $day['total'],
+                    'target' => $this->target_count,
+                    'meets_target' => $meetsTarget
+                ]);
+                return $meetsTarget;
+            })
+            ->pluck('date')
             ->sort()
             ->values();
             
-        if ($completions->isEmpty()) {
+        \Log::debug('Completed dates after filtering', [
+            'completed_dates' => $completedDates->map->toDateString(),
+            'count' => $completedDates->count()
+        ]);
+            
+        if ($completedDates->isEmpty()) {
+            \Log::debug('No completed dates meet the target count', [
+                'target_count' => $this->target_count
+            ]);
             return 0;
         }
         
         // Start with the most recent completion on or before the reference date
         $currentStreak = 0;
         $expectedDate = $date->copy();
-        $completions = $completions->sort()->values();
         
         // Check for consecutive days backwards from the reference date
-        // We need at least one completion on or before the reference date
-        for ($i = $completions->count() - 1; $i >= 0; $i--) {
-            $completionDate = $completions[$i];
+        for ($i = $completedDates->count() - 1; $i >= 0; $i--) {
+            $completionDate = $completedDates[$i];
             
             if ($completionDate->isSameDay($expectedDate)) {
                 $currentStreak++;
                 $expectedDate->subDay();
             } else if ($completionDate < $expectedDate) {
                 // If we find a completion before our expected date, check if it's part of a new streak
-                // Only reset if we're not at the beginning of a potential streak
                 if ($currentStreak === 0) {
                     // Start a new potential streak from this completion
                     $currentStreak = 1;

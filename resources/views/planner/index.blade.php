@@ -271,7 +271,7 @@
             @foreach($todos as $todo)
                 @php
                     $completionCount = $todo->is_habit ? $todo->getCompletionCount($date) : 0;
-                    $isCompleted = $todo->is_habit ? ($completionCount >= $todo->target_count) : $todo->completed;
+                    $isCompleted = $todo->is_habit ? ($completionCount === $todo->target_count) : $todo->completed;
                 @endphp
                 <div class="todo-item {{ $isCompleted ? 'completed' : '' }}" data-todo-id="{{ $todo->id }}">
                     <form action="{{ route('planner.toggle-complete', $todo) }}" method="POST" class="todo-checkbox m-auto" onsubmit="toggleTodoComplete(event, {{ $todo->id }})">
