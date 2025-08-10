@@ -66,23 +66,168 @@ class Todo extends Model
         return $this->type === 'recurring';
     }
     
-    protected static function updateHabitStreak($todo)
+    protected static function updateHabitStreak($todo, $increment = true, $selectedDate = null)
     {
-        $yesterday = now()->subDay();
+        $frequency = $todo->frequency ?? 'daily';
+        $referenceDate = $selectedDate ? Carbon::parse($selectedDate) : now();
+        $referenceDate = $referenceDate->setTimezone(config('app.timezone'))->startOfDay();
         
-        // If last completed was yesterday or earlier, increment streak
-        if (!$todo->last_completed_at || $todo->last_completed_at->isSameDay($yesterday)) {
-            $todo->current_streak++;
+        // Get all unique completion dates, ordered by date (newest first)
+        $completions = $todo->completions()
+            ->orderBy('completion_date', 'desc')
+            ->pluck('completion_date')
+            ->map(function ($date) use ($referenceDate) {
+                $parsed = Carbon::parse($date)->setTimezone(config('app.timezone'))->startOfDay();
+                // Only include dates that are on or before the reference date
+                return $parsed->lte($referenceDate) ? $parsed : null;
+            })
+            ->filter() // Remove null values (future dates relative to reference date)
+            ->unique()
+            ->values()
+            ->toArray();
             
-            // Update longest streak if needed
-            if ($todo->current_streak > $todo->longest_streak) {
-                $todo->longest_streak = $todo->current_streak;
-            }
-        } 
-        // If last completed was before yesterday, reset streak
-        elseif ($todo->last_completed_at && $todo->last_completed_at->lt($yesterday)) {
-            $todo->current_streak = 1;
+        // Log the completions for debugging
+        // \Log::info('Updating streak', [
+        //     'todo_id' => $todo->id,
+        //     'reference_date' => $referenceDate->toDateString(),
+        //     'timezone' => config('app.timezone'),
+        //     'completions' => array_map(fn($c) => $c->toDateString(), $completions),
+        //     'current_streak' => $todo->current_streak,
+        //     'last_completed_at' => $todo->last_completed_at?->toDateString(),
+        //     'increment' => $increment
+        // ]);
+            
+        if (empty($completions)) {
+            $todo->current_streak = 0;
+            $todo->last_completed_at = null;
+            $todo->save();
+            return;
         }
+        
+        // For daily habits, we'll use a simpler approach
+        if ($frequency === 'daily') {
+            // Sort dates in ascending order
+            usort($completions, function($a, $b) {
+                return $a->timestamp - $b->timestamp;
+            });
+            
+            // Start with the most recent completion (on or before reference date)
+            $lastCompletion = end($completions);
+            
+            // If we have no completions, reset the streak
+            if (!$lastCompletion) {
+                $todo->current_streak = 0;
+                $todo->last_completed_at = null;
+                $todo->save();
+                return;
+            }
+            
+            // When decrementing, we need to recalculate the entire streak
+            // instead of just adjusting by 1
+            if (!$increment) {
+                $todo->current_streak = 0;
+                $todo->last_completed_at = null;
+                $todo->save();
+                
+                // If there are still completions, recalculate the streak from scratch
+                if (!empty($completions)) {
+                    $newLastCompletion = end($completions);
+                    $todo->last_completed_at = $newLastCompletion;
+                    $todo->save();
+                    return; // The next call will calculate the correct streak
+                }
+                return;
+            }
+            
+            // Start with a streak of 1 for today
+            $currentStreak = 1;
+            $currentDate = $lastCompletion->copy()->subDay();
+            
+            // Go through completions in reverse chronological order
+            for ($i = count($completions) - 2; $i >= 0; $i--) {
+                if ($completions[$i]->isSameDay($currentDate)) {
+                    $currentStreak++;
+                    $currentDate->subDay();
+                } else {
+                    // If we find a gap in the streak, stop checking
+                    break;
+                }
+            }
+            
+            // Log the calculated streak
+            // \Log::info('Calculated streak', [
+            //     'todo_id' => $todo->id,
+            //     'current_streak' => $currentStreak,
+            //     'last_completion' => $lastCompletion->toDateString()
+            // ]);
+            
+            // Update the todo
+            $todo->current_streak = $currentStreak;
+            $todo->longest_streak = max($currentStreak, $todo->longest_streak ?? 0);
+            $todo->last_completed_at = $lastCompletion;
+            $todo->save();
+            return;
+        }
+        
+        // For weekly and monthly, keep the existing logic but simplified
+        $sortedCompletions = collect($completions)
+            ->filter(function($date) use ($today) {
+                return $date->lte($today);
+            })
+            ->sort()
+            ->values();
+            
+        if ($sortedCompletions->isEmpty()) {
+            $todo->current_streak = 0;
+            $todo->last_completed_at = null;
+            $todo->save();
+            return;
+        }
+        
+        $currentStreak = 1;
+        $lastDate = $sortedCompletions->first();
+        $lastCompleted = $sortedCompletions->last();
+        
+        foreach ($sortedCompletions->slice(1) as $currentDate) {
+            if ($currentDate->isSameDay($lastDate)) {
+                continue;
+            }
+            
+            $isConsecutive = false;
+            
+            if ($frequency === 'weekly') {
+                $expectedNext = $lastDate->copy()->addWeek();
+                $isConsecutive = $currentDate->isSameDay($expectedNext);
+            } elseif ($frequency === 'monthly') {
+                $expectedNext = $lastDate->copy()->addMonth();
+                $isConsecutive = $currentDate->isSameDay($expectedNext);
+            }
+            
+            if ($isConsecutive) {
+                $currentStreak++;
+            } else {
+                break;
+            }
+            
+            $lastDate = $currentDate;
+        }
+        
+        // Update the todo
+        $todo->current_streak = $currentStreak;
+        $todo->longest_streak = max($currentStreak, $todo->longest_streak ?? 0);
+        $todo->last_completed_at = $sortedCompletions->last();
+        $todo->save();
+        
+        // Log the update for debugging
+        // \Log::info('Updated streak', [
+        //     'todo_id' => $todo->id,
+        //     'frequency' => $frequency,
+        //     'current_streak' => $currentStreak,
+        //     'longest_streak' => $todo->longest_streak,
+        //     'last_completed' => $todo->last_completed_at,
+        //     'completions' => $completions,
+        //     'previous_streak' => $todo->getOriginal('current_streak')
+        // ]);
     }
     
     protected static function createNextRecurringInstance($todo)
@@ -143,7 +288,7 @@ class Todo extends Model
     }
     
     /**
-     * Get the completion count for a specific date.
+     * Get the completion count for a specific date, week, or month.
      */
     public function getCompletionCount($date = null)
     {
@@ -154,11 +299,34 @@ class Todo extends Model
         $date = $date ? Carbon::parse($date) : now();
         $dateString = $date->toDateString();
         
-        $completion = $this->completions()
-            ->whereDate('completion_date', $dateString)
-            ->first();
-        
-        return $completion ? $completion->count : 0;
+        if ($this->frequency === 'daily') {
+            // For daily habits, get completion for the specific date
+            $completion = $this->completions()
+                ->whereDate('completion_date', $dateString)
+                ->first();
+                
+            return $completion ? $completion->count : 0;
+        } elseif ($this->frequency === 'weekly') {
+            // For weekly habits, get all completions in the same week as the target date
+            $startOfWeek = $date->copy()->startOfWeek()->toDateString();
+            $endOfWeek = $date->copy()->endOfWeek()->toDateString();
+            
+            $completions = $this->completions()
+                ->whereBetween('completion_date', [$startOfWeek, $endOfWeek])
+                ->get();
+                
+            return $completions->sum('count');
+        } else {
+            // For monthly habits, get all completions in the same month as the target date
+            $startOfMonth = $date->copy()->startOfMonth()->toDateString();
+            $endOfMonth = $date->copy()->endOfMonth()->toDateString();
+            
+            $completions = $this->completions()
+                ->whereBetween('completion_date', [$startOfMonth, $endOfMonth])
+                ->get();
+                
+            return $completions->sum('count');
+        }
     }
     
     /**
@@ -180,6 +348,9 @@ class Todo extends Model
         }
         
         $date = $date ? Carbon::parse($date) : now();
+        // Ensure we're using the correct timezone
+        $date->setTimezone(config('app.timezone'));
+        $date->startOfDay();
         $dateString = $date->toDateString();
         
         // First try to get existing completion
@@ -191,14 +362,25 @@ class Todo extends Model
             // Update existing completion
             $newCount = min($completion->count + $count, $this->target_count);
             $completion->update(['count' => $newCount]);
-            return $completion;
         } else {
             // Create new completion
-            return $this->completions()->create([
+            $completion = $this->completions()->create([
                 'completion_date' => $dateString,
                 'count' => min($count, $this->target_count)
             ]);
+            
+            // Update last completed at when a new completion is created
+            $this->last_completed_at = $date;
         }
+        
+        // Update the streak using the selected date as reference
+        static::updateHabitStreak($this, true, $dateString);
+        $this->save();
+        
+        // Refresh the model to get the latest values
+        $this->refresh();
+        
+        return $completion;
     }
     
     /**
@@ -211,6 +393,7 @@ class Todo extends Model
         }
         
         $date = $date ? Carbon::parse($date) : now();
+        $date->setTimezone(config('app.timezone'))->startOfDay();
         $dateString = $date->toDateString();
         
         // Get the completion record
@@ -227,10 +410,32 @@ class Todo extends Model
         
         if ($newCount <= 0) {
             // If count would be 0 or less, delete the record
-            return $completion->delete();
+            $completion->delete();
+            
+            // If we're removing the last completion, update last_completed_at
+            if ($this->last_completed_at && $this->last_completed_at->isSameDay($date)) {
+                $previousCompletion = $this->completions()
+                    ->orderBy('completion_date', 'desc')
+                    ->first();
+                $this->last_completed_at = $previousCompletion ? $previousCompletion->completion_date : null;
+            }
+            
+            // Update the streak (decrement) using the selected date as reference
+            static::updateHabitStreak($this, false, $dateString);
+            $this->save();
+            $this->refresh();
+            
+            return true;
         } else {
             // Otherwise, update the count
-            return $completion->update(['count' => $newCount]);
+            $completion->update(['count' => $newCount]);
+            
+            // Update the streak (decrement) using the selected date as reference
+            static::updateHabitStreak($this, false, $dateString);
+            $this->save();
+            $this->refresh();
+            
+            return true;
         }
     }
 
@@ -242,41 +447,48 @@ class Todo extends Model
     public function scopeForDate($query, $date)
     {
         $date = Carbon::parse($date);
-        $startOfDay = $date->copy()->startOfDay();
-        $endOfDay = $date->copy()->endOfDay();
         $dateString = $date->toDateString();
         
         return $query->with(['completions' => function($q) use ($dateString) {
             $q->whereDate('completion_date', $dateString);
-        }])->where(function($q) use ($startOfDay, $endOfDay, $date) {
-            // For one-time tasks, show only on the due date
-            $q->where('type', 'one_time')
-              ->whereDate('due_date', $date);
-        })->orWhere(function($q) use ($startOfDay, $endOfDay, $date) {
-            // For recurring tasks, show if the recurrence pattern matches the date
-            $q->where('type', 'recurring')
-              ->whereDate('due_date', '<=', $date)
-              ->where(function($q) use ($date) {
-                  $q->whereNull('recurrence_ends_at')
-                    ->orWhereDate('recurrence_ends_at', '>=', $date);
-              })
-              ->where(function($q) use ($date) {
-                  $q->where(function($q) use ($date) {
+        }])->where(function($q) use ($date, $dateString) {
+            // For one-time tasks, show only on the due date and not completed
+            $q->where(function($q) use ($date) {
+                $q->where('type', 'one_time')
+                  ->whereDate('due_date', $date);
+            })
+            // For recurring tasks, show if the recurrence pattern matches the date and not completed on this date
+            ->orWhere(function($q) use ($date, $dateString) {
+                $q->where('type', 'recurring')
+                  ->whereDate('due_date', '<=', $date)
+                  ->where(function($q) use ($date) {
+                      $q->whereNull('recurrence_ends_at')
+                        ->orWhereDate('recurrence_ends_at', '>=', $date);
+                  })
+                  ->where(function($q) use ($date) {
                       // For daily recurrence
-                      $q->where('frequency', 'daily');
-                  })->orWhere(function($q) use ($date) {
+                      $q->where('frequency', 'daily')
+                        // Only include if not completed today
+                        ->whereDoesntHave('completions', function($q) use ($date) {
+                            $q->whereDate('completion_date', $date->toDateString());
+                        });
+                  })
+                  ->orWhere(function($q) use ($date) {
                       // For weekly recurrence (same day of week)
-                      // Map Carbon's dayOfWeek (0-6, Sunday=0) to PostgreSQL DOW (0-6, Sunday=0)
-                      // But we need to get the day of week from the original due_date, not the current date
                       $q->where('frequency', 'weekly')
-                        ->whereRaw('EXTRACT(DOW FROM due_date) = EXTRACT(DOW FROM ?::timestamp)', [$date->toDateString()]);
-                  })->orWhere(function($q) use ($date) {
-                      // For monthly recurrence (same day of month or last day if day doesn't exist in month)
+                        ->whereRaw('EXTRACT(DOW FROM due_date) = EXTRACT(DOW FROM ?::timestamp)', [$date->toDateString()])
+                        // Only include if not completed this week
+                        ->whereDoesntHave('completions', function($q) use ($date) {
+                            $startOfWeek = $date->copy()->startOfWeek()->toDateString();
+                            $endOfWeek = $date->copy()->endOfWeek()->toDateString();
+                            $q->whereBetween('completion_date', [$startOfWeek, $endOfWeek]);
+                        });
+                  })
+                  ->orWhere(function($q) use ($date) {
+                      // For monthly recurrence
                       $q->where('frequency', 'monthly')
                         ->where(function($q) use ($date) {
-                            // Either the day matches exactly
                             $q->whereRaw('EXTRACT(DAY FROM due_date) = ?', [$date->day])
-                              // Or it's the last day of the month and the due date's day is >= the current day
                               ->orWhere(function($q) use ($date) {
                                   $lastDayOfMonth = $date->copy()->endOfMonth()->day;
                                   $q->whereRaw('EXTRACT(DAY FROM due_date) > ?', [$lastDayOfMonth])
@@ -285,14 +497,18 @@ class Todo extends Model
                                         $lastDayOfMonth
                                     ]);
                               });
+                        })
+                        // Only include if not completed this month
+                        ->whereDoesntHave('completions', function($q) use ($date) {
+                            $startOfMonth = $date->copy()->startOfMonth()->toDateString();
+                            $endOfMonth = $date->copy()->endOfMonth()->toDateString();
+                            $q->whereBetween('completion_date', [$startOfMonth, $endOfMonth]);
                         });
                   });
-              });
-        })->orWhere(function($q) {
+            })
             // For habits, show on every day
-            $q->where('type', 'habit');
+            ->orWhere('type', 'habit');
         })->addSelect([
-            // Add a subquery to get the completion count for the specific date
             'completion_count' => function($q) use ($dateString) {
                 $q->selectRaw('COALESCE(SUM(count), 0)')
                   ->from('habit_completions')

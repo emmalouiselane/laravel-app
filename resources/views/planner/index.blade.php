@@ -297,9 +297,10 @@
                                 </button>
                             </div>
                         @else
+                            <input type="hidden" name="change" :value="this.checked ? 1 : -1">
                             <input type="checkbox" 
                                 {{ ($todo->is_habit ? $completionCount > 0 : $todo->completed) ? 'checked' : '' }}
-                                onchange="this.form.submit()"
+                                onchange="this.previousElementSibling.value = this.checked ? 1 : -1; this.form.submit()"
                                 class="h-5 w-5 text-primary-600 rounded focus:ring-primary-500 cursor-pointer">
                         @endif
                     </form>
