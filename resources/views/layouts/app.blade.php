@@ -57,6 +57,8 @@
             plugins: [],
         }
     </script>
+
+<script src="https://tinylytics.app/embed/ZqiXX112qeb4C8pdyGQg.js" defer></script>
     
     @stack('styles')
 </head>
