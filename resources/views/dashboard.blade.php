@@ -53,6 +53,7 @@
         
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
             <div class="bg-gray-50 p-4 rounded-lg text-center">
+                <p class="m-2">Daily planner with to-do list and habit tracker</p>
                 <a href="{{ route('planner.index') }}">
                     <x-bladewind::button 
                         type="primary"
@@ -60,7 +61,7 @@
                         uppercasing="false"
                         button_text_css="text-base"
                     >
-                        {{ __('Planner') }}
+                        {{ __('Daily Planner') }}
                     </x-bladewind::button>
                 </a>
             </div>

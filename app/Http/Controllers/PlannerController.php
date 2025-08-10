@@ -44,7 +44,8 @@ class PlannerController extends Controller
             'description' => 'nullable|string',
             'due_date' => 'required|date',
             'type' => 'required|in:one_time,recurring,habit',
-            'frequency' => 'required_if:type,recurring,habit',
+            'frequency' => 'required_if:type,habit',
+            'recurring_frequency' => 'required_if:type,recurring',
             'recurrence_ends_at' => 'nullable|date|after_or_equal:due_date',
             'target_count' => 'required_if:type,habit|integer|min:1',
             'is_skippable' => 'boolean',
@@ -60,7 +61,7 @@ class PlannerController extends Controller
 
         // Handle recurring task fields
         if ($validated['type'] === 'recurring') {
-            $todoData['frequency'] = $validated['frequency'];
+            $todoData['frequency'] = $validated['recurring_frequency'];
             if (!empty($validated['recurrence_ends_at'])) {
                 $todoData['recurrence_ends_at'] = $validated['recurrence_ends_at'];
             }
@@ -160,7 +161,8 @@ class PlannerController extends Controller
             'due_date' => 'required|date',
             'completed' => 'boolean',
             'type' => 'required|in:one_time,recurring,habit',
-            'frequency' => 'required_if:type,recurring,habit',
+            'frequency' => 'required_if:type,habit',
+            'recurring_frequency' => 'required_if:type,recurring',
             'recurrence_ends_at' => 'nullable|date|after_or_equal:due_date',
             'target_count' => 'required_if:type,habit|integer|min:1',
             'is_skippable' => 'boolean',
@@ -180,13 +182,13 @@ class PlannerController extends Controller
 
         // Handle recurring task fields
         if ($validated['type'] === 'recurring') {
-            $updateData['frequency'] = $validated['frequency'];
+            $updateData['frequency'] = $validated['recurring_frequency'];
             $updateData['recurrence_ends_at'] = $validated['recurrence_ends_at'] ?? null;
             
-            // Clear habit-specific fields if type changed from habit
-            $updateData['target_count'] = null;
-            $updateData['current_streak'] = null;
-            $updateData['longest_streak'] = null;
+            // Set default values for non-recurring fields
+            $updateData['target_count'] = 1;
+            $updateData['current_streak'] = 0;
+            $updateData['longest_streak'] = 0;
             $updateData['is_skippable'] = true;
         }
         // Handle habit fields

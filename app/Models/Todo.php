@@ -89,7 +89,10 @@ class Todo extends Model
     {
         $nextDueDate = null;
         
-        switch ($todo->recurrence_pattern['frequency'] ?? 'daily') {
+        // Use the frequency directly from the model instead of recurrence_pattern
+        $frequency = $todo->frequency ?? 'daily';
+        
+        switch ($frequency) {
             case 'daily':
                 $nextDueDate = $todo->due_date->addDay();
                 break;
@@ -154,9 +157,18 @@ class Todo extends Model
         $completion = $this->completions()
             ->whereDate('completion_date', $dateString)
             ->first();
-            
+        
         return $completion ? $completion->count : 0;
     }
+    
+    /**
+     * Accessor for the completion_count attribute.
+     */
+    public function getCompletionCountAttribute()
+    {
+        return $this->getCompletionCount();
+    }
+    
     
     /**
      * Increment the completion count for a habit on a specific date.
@@ -236,17 +248,45 @@ class Todo extends Model
         
         return $query->with(['completions' => function($q) use ($dateString) {
             $q->whereDate('completion_date', $dateString);
-        }])->where(function($q) use ($startOfDay, $endOfDay) {
+        }])->where(function($q) use ($startOfDay, $endOfDay, $date) {
             // For one-time tasks, show only on the due date
             $q->where('type', 'one_time')
-              ->whereBetween('due_date', [$startOfDay, $endOfDay]);
-        })->orWhere(function($q) use ($startOfDay, $endOfDay) {
+              ->whereDate('due_date', $date);
+        })->orWhere(function($q) use ($startOfDay, $endOfDay, $date) {
             // For recurring tasks, show if the recurrence pattern matches the date
             $q->where('type', 'recurring')
-              ->where('due_date', '<=', $endOfDay)
-              ->where(function($q) use ($endOfDay) {
+              ->whereDate('due_date', '<=', $date)
+              ->where(function($q) use ($date) {
                   $q->whereNull('recurrence_ends_at')
-                    ->orWhere('recurrence_ends_at', '>=', $endOfDay);
+                    ->orWhereDate('recurrence_ends_at', '>=', $date);
+              })
+              ->where(function($q) use ($date) {
+                  $q->where(function($q) use ($date) {
+                      // For daily recurrence
+                      $q->where('frequency', 'daily');
+                  })->orWhere(function($q) use ($date) {
+                      // For weekly recurrence (same day of week)
+                      // Map Carbon's dayOfWeek (0-6, Sunday=0) to PostgreSQL DOW (0-6, Sunday=0)
+                      // But we need to get the day of week from the original due_date, not the current date
+                      $q->where('frequency', 'weekly')
+                        ->whereRaw('EXTRACT(DOW FROM due_date) = EXTRACT(DOW FROM ?::timestamp)', [$date->toDateString()]);
+                  })->orWhere(function($q) use ($date) {
+                      // For monthly recurrence (same day of month or last day if day doesn't exist in month)
+                      $q->where('frequency', 'monthly')
+                        ->where(function($q) use ($date) {
+                            // Either the day matches exactly
+                            $q->whereRaw('EXTRACT(DAY FROM due_date) = ?', [$date->day])
+                              // Or it's the last day of the month and the due date's day is >= the current day
+                              ->orWhere(function($q) use ($date) {
+                                  $lastDayOfMonth = $date->copy()->endOfMonth()->day;
+                                  $q->whereRaw('EXTRACT(DAY FROM due_date) > ?', [$lastDayOfMonth])
+                                    ->whereRaw('EXTRACT(DAY FROM ?::date) = ?', [
+                                        $date->toDateString(),
+                                        $lastDayOfMonth
+                                    ]);
+                              });
+                        });
+                  });
               });
         })->orWhere(function($q) {
             // For habits, show on every day

@@ -51,13 +51,13 @@
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-                <label for="frequency" class="block text-sm font-medium text-gray-700 mb-1">Frequency</label>
-                <select id="frequency" 
-                        name="frequency" 
+                <label for="recurring_frequency" class="block text-sm font-medium text-gray-700 mb-1">Frequency</label>
+                <select id="recurring_frequency" 
+                        name="recurring_frequency" 
                         class="w-full p-2 border rounded focus:ring-2 focus:ring-primary-500 focus:border-transparent">
-                    <option value="daily" {{ (old('frequency', $todo->frequency ?? '') === 'daily') ? 'selected' : '' }}>Daily</option>
-                    <option value="weekly" {{ (old('frequency', $todo->frequency ?? '') === 'weekly') ? 'selected' : '' }}>Weekly</option>
-                    <option value="monthly" {{ (old('frequency', $todo->frequency ?? '') === 'monthly') ? 'selected' : '' }}>Monthly</option>
+                    <option value="daily" {{ (old('recurring_frequency', $todo->frequency ?? '') === 'daily') ? 'selected' : '' }}>Daily</option>
+                    <option value="weekly" {{ (old('recurring_frequency', $todo->frequency ?? '') === 'weekly') ? 'selected' : '' }}>Weekly</option>
+                    <option value="monthly" {{ (old('recurring_frequency', $todo->frequency ?? '') === 'monthly') ? 'selected' : '' }}>Monthly</option>
                 </select>
             </div>
             
@@ -143,18 +143,25 @@
         document.getElementById('habitFields').style.display = type === 'habit' ? 'block' : 'none';
     }
     
-    // Close modal on successful form submission
+    // Form submission handler
     document.getElementById('editTodoForm').addEventListener('submit', function(e) {
         e.preventDefault();
         
         const formData = new FormData(this);
         const data = {};
+        
+        // Convert FormData to plain object
         formData.forEach((value, key) => {
-            data[key] = value;
+            // Handle checkboxes
+            if (key === 'is_skippable') {
+                data[key] = value === 'on' ? 1 : 0;
+            } else {
+                data[key] = value;
+            }
         });
         
-        // Convert completed checkbox to boolean
-        data.completed = data.completed === '1';
+        // Add _method for Laravel's method spoofing
+        data['_method'] = 'PUT';
         
         fetch(this.action, {
             method: 'POST',
@@ -164,43 +171,7 @@
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                ...data,
-                '_method': 'PUT',
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.redirect) {
-                window.location.href = data.redirect;
-            }
-        })
-        .catch(error => console.error('Error:', error));
-    });
-</script>
-@endpush
-
-@push('scripts')
-<script>
-    // Close modal on successful form submission
-    document.getElementById('editTodoForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        fetch(this.action, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                '_method': 'PUT',
-                'title': this.querySelector('[name="title"]').value,
-                'description': this.querySelector('[name="description"]').value,
-                'due_date': this.querySelector('[name="due_date"]').value,
-                'completed': this.querySelector('[name="completed"]').checked ? 1 : 0,
-            })
+            body: JSON.stringify(data)
         })
         .then(response => response.json())
         .then(data => {

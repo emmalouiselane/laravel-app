@@ -83,7 +83,7 @@
 @section('content')
 <div class="planner-container">
 <header class="flex justify-between items-center mb-4">
-        <h1 class="text-2xl font-bold">Planner</h1>
+        <h1 class="text-2xl font-bold">Daily Planner</h1>
 
         <x-auth-buttons 
             :showDashboard="true"
@@ -191,8 +191,8 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label for="frequency" class="block text-sm font-medium text-gray-700 mb-1">Frequency</label>
-                            <select id="frequency" 
-                                    name="frequency" 
+                            <select id="recurring_frequency" 
+                                    name="recurring_frequency" 
                                     class="w-full p-2 border rounded focus:ring-2 focus:ring-primary-500 focus:border-transparent">
                                 <option value="daily">Daily</option>
                                 <option value="weekly">Weekly</option>
@@ -272,12 +272,12 @@
                     $isCompleted = $todo->is_habit ? ($completionCount >= $todo->target_count) : $todo->completed;
                 @endphp
                 <div class="todo-item {{ $isCompleted ? 'completed' : '' }}" data-todo-id="{{ $todo->id }}">
-                    <form action="{{ route('planner.toggle-complete', $todo) }}" method="POST" class="todo-checkbox" onsubmit="toggleTodoComplete(event, {{ $todo->id }})">
+                    <form action="{{ route('planner.toggle-complete', $todo) }}" method="POST" class="todo-checkbox m-auto" onsubmit="toggleTodoComplete(event, {{ $todo->id }})">
                         @csrf
                         @method('PATCH')
                         <input type="hidden" name="date" value="{{ $date->toDateString() }}">
                         @if($todo->is_habit && $todo->target_count > 1)
-                            <div class="flex items-center space-x-1">
+                            <div class="flex items-center space-x-1 m-auto">
                                 <button type="button" 
                                     onclick="updateHabitCount(event, {{ $todo->id }}, -1, '{{ $date->toDateString() }}')"
                                     class="decrement-btn h-6 w-6 flex items-center justify-center rounded-full bg-gray-200 hover:bg-gray-300 text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
@@ -303,25 +303,32 @@
                                 class="h-5 w-5 text-primary-600 rounded focus:ring-primary-500 cursor-pointer">
                         @endif
                     </form>
-                    <div class="todo-content">
-                        <div class="flex items-center space-x-2">
-                            <span class="todo-title">{{ $todo->title }}</span>
-                            
-                            @if($todo->is_recurring)
-                                <span class="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
-                                    {{ ucfirst($todo->frequency) }}
-                                </span>
-                            @endif
-                            
+                    <div class="todo-content ml-5">                        
                             @if($todo->is_habit)
-                                <span class="text-xs px-2 py-0.5 bg-green-100 text-green-800 rounded-full">
-                                    Habit
-                                    @if($todo->current_streak > 0)
-                                        🔥 {{ $todo->current_streak }}
-                                    @endif
-                                </span>
+                                <div class="flex items-center space-x-2">
+                                    <span class="todo-title my-auto">{{ $todo->title }}</span>
+                                    
+                                    <span class="text-xs px-2 py-0.5 bg-green-100 text-green-800 rounded-full">
+                                        Habit
+                                        @if($todo->current_streak > 0)
+                                            🔥 {{ $todo->current_streak }}
+                                        @endif
+                                    </span>
+                                </div>
+                            @else
+                                @if($todo->is_recurring)
+                                    <div class="flex items-center space-x-2 {{ $todo->recurrence_ends_at ? '' : 'mt-2' }}">
+                                        <span class="todo-title my-auto">{{ $todo->title }}</span>
+                                        <span class="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
+                                            {{ ucfirst($todo->frequency) }}
+                                        </span>
+                                    </div>
+                                @else
+                                    <div class="flex items-center space-x-2 {{ $todo->recurrence_ends_at ? '' : 'mt-2' }}">
+                                        <span class="todo-title my-auto">{{ $todo->title }}</span>
+                                    </div>
+                                @endif
                             @endif
-                        </div>
                         
                         <div class="flex items-center space-x-4 mt-1">
                             @php
