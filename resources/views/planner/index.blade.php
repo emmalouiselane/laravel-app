@@ -279,26 +279,38 @@
             </div>
         @else
             @foreach($todos as $todo)
-                <div class="todo-item {{ $todo->is_habit ? ($todo->completion_count >= $todo->target_count ? 'completed' : '') : ($todo->completed ? 'completed' : '') }}">
+                @php
+                    $completionCount = $todo->is_habit ? $todo->getCompletionCount($date) : 0;
+                    $isCompleted = $todo->is_habit ? ($completionCount >= $todo->target_count) : $todo->completed;
+                @endphp
+                <div class="todo-item {{ $isCompleted ? 'completed' : '' }}" data-todo-id="{{ $todo->id }}">
                     <form action="{{ route('planner.toggle-complete', $todo) }}" method="POST" class="todo-checkbox" onsubmit="toggleTodoComplete(event, {{ $todo->id }})">
                         @csrf
                         @method('PATCH')
                         <input type="hidden" name="date" value="{{ $date->toDateString() }}">
                         @if($todo->is_habit && $todo->target_count > 1)
-                            <div class="relative">
-                                <input type="checkbox" 
-                                    {{ $todo->completion_count >= $todo->target_count ? 'checked' : '' }}
-                                    onchange="this.form.submit()"
-                                    class="h-5 w-5 text-primary-600 rounded focus:ring-primary-500 cursor-pointer">
-                                @if($todo->completion_count > 0)
-                                    <span class="absolute -top-2 -right-2 bg-primary-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                                        {{ $todo->completion_count }}
-                                    </span>
-                                @endif
+                            <div class="flex items-center space-x-1">
+                                <button type="button" 
+                                    onclick="updateHabitCount(event, {{ $todo->id }}, -1, '{{ $date->toDateString() }}')"
+                                    class="decrement-btn h-6 w-6 flex items-center justify-center rounded-full bg-gray-200 hover:bg-gray-300 text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                    {{ $completionCount <= 0 ? 'disabled' : '' }}>
+                                    -
+                                </button>
+                                
+                                <span class="habit-count px-2 py-1 text-sm font-medium min-w-[2rem] text-center">
+                                    {{ $completionCount }}/{{ $todo->target_count }}
+                                </span>
+                                
+                                <button type="button"
+                                    onclick="updateHabitCount(event, {{ $todo->id }}, 1, '{{ $date->toDateString() }}')"
+                                    class="increment-btn h-6 w-6 flex items-center justify-center rounded-full bg-gray-200 hover:bg-gray-300 text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                    {{ $completionCount >= $todo->target_count ? 'disabled' : '' }}>
+                                    +
+                                </button>
                             </div>
                         @else
                             <input type="checkbox" 
-                                {{ ($todo->is_habit ? $todo->completion_count > 0 : $todo->completed) ? 'checked' : '' }}
+                                {{ ($todo->is_habit ? $completionCount > 0 : $todo->completed) ? 'checked' : '' }}
                                 onchange="this.form.submit()"
                                 class="h-5 w-5 text-primary-600 rounded focus:ring-primary-500 cursor-pointer">
                         @endif
@@ -324,17 +336,22 @@
                         </div>
                         
                         <div class="flex items-center space-x-4 mt-1">
-                            <div class="todo-time text-sm text-gray-500">
-                                {{ $todo->due_date->setTimezone(auth()->user()->timezone)->format('g:i A') }}
-                            </div>
+                            @php
+                                $userTime = $todo->due_date->setTimezone(auth()->user()->timezone);
+                            @endphp
+                            @if(!$userTime->isMidnight())
+                                <div class="todo-time text-sm text-gray-500">
+                                    {{ $userTime->format('g:i A') }}
+                                </div>
+                            @endif
                             
                             @if($todo->is_habit && $todo->target_count > 1)
                                 <div class="flex items-center space-x-1">
                                     @for($i = 0; $i < $todo->target_count; $i++)
-                                        <div class="w-2 h-2 rounded-full {{ $i < $todo->completion_count ? 'bg-green-500' : 'bg-gray-200' }}"></div>
+                                        <div class="progress-dot w-2 h-2 rounded-full {{ $i < $completionCount ? 'bg-green-500' : 'bg-gray-200' }}"></div>
                                     @endfor
-                                    <span class="text-xs text-gray-500 ml-1">
-                                        ({{ $todo->completion_count }}/{{ $todo->target_count }})
+                                    <span class="habit-count text-xs text-gray-500 ml-1">
+                                        ({{ $completionCount }}/{{ $todo->target_count }})
                                     </span>
                                 </div>
                             @endif
@@ -459,6 +476,82 @@
             }
         }
     });
+    
+    // Update habit completion count
+    async function updateHabitCount(event, todoId, change, date) {
+        event.preventDefault();
+        
+        const form = event.target.closest('form');
+        const formData = new FormData(form);
+        const url = form.action;
+        
+        try {
+            const response = await fetch(url, {
+                method: 'PATCH',
+                headers: {
+                    'X-CSRF-TOKEN': formData.get('_token'),
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    _token: formData.get('_token'),
+                    _method: 'PATCH',
+                    date: date,
+                    change: change
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // Update the UI
+                const todoItem = event.target.closest('.todo-item');
+                const countElement = todoItem.querySelectorAll('.habit-count');
+                const progressDots = todoItem.querySelectorAll('.progress-dot');
+                const incrementBtn = todoItem.querySelector('.increment-btn');
+                const decrementBtn = todoItem.querySelector('.decrement-btn');
+                
+                // Update count display
+                countElement.forEach((element) => {
+                    element.textContent = data.completion_count + '/' + data.target_count;
+                });
+                
+                // Update progress dots
+                if (progressDots.length > 0) {
+                    progressDots.forEach((dot, index) => {
+                        if (index < data.completion_count) {
+                            dot.classList.add('bg-green-500');
+                            dot.classList.remove('bg-gray-200');
+                        } else {
+                            dot.classList.remove('bg-green-500');
+                            dot.classList.add('bg-gray-200');
+                        }
+                    });
+                }
+                
+                // Update button states
+                if (incrementBtn) {
+                    incrementBtn.disabled = data.completion_count >= data.target_count;
+                }
+                if (decrementBtn) {
+                    decrementBtn.disabled = data.completion_count <= 0;
+                }
+                
+                // Update completion status
+                if (data.completion_count >= data.target_count) {
+                    todoItem.classList.add('completed');
+                } else {
+                    todoItem.classList.remove('completed');
+                }
+            } else {
+                alert('Error: ' + (data.message || 'Failed to update habit'));
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred while updating the habit');
+        }
+    }
     
     // Toggle add form visibility
     function toggleAddForm() {

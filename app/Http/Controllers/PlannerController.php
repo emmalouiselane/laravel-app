@@ -105,24 +105,26 @@ class PlannerController extends Controller
         $this->authorize('update', $todo);
         
         $date = $request->input('date', now()->toDateString());
+        $change = (int)$request->input('change', 1);
         
         if ($todo->is_habit) {
-            // For habits, increment/decrement the completion count
-            $completion = $todo->getCompletionForDate($date);
-            
-            if ($completion && $completion->count > 0) {
-                // If already completed, decrement the count
-                $todo->decrementCompletion($date);
-                $message = 'Habit unchecked for ' . Carbon::parse($date)->format('M j, Y');
+            // For habits, handle the completion count change
+            if ($change > 0) {
+                // Increment the count (up to target)
+                $todo->incrementCompletion($date, $change);
+                $message = 'Habit updated for ' . Carbon::parse($date)->format('M j, Y');
+            } else if ($change < 0) {
+                // Decrement the count (but not below 0)
+                $todo->decrementCompletion($date, abs($change));
+                $message = 'Habit updated for ' . Carbon::parse($date)->format('M j, Y');
             } else {
-                // If not completed, increment the count (up to target)
-                $todo->incrementCompletion($date);
-                $message = 'Habit checked for ' . Carbon::parse($date)->format('M j, Y');
+                // No change, just get current status
+                $message = 'Habit status checked for ' . Carbon::parse($date)->format('M j, Y');
             }
             
-            // Update the completion status based on the count
-            $completion = $todo->getCompletionForDate($date);
-            $completed = $completion && $completion->count >= $todo->target_count;
+            // Get the updated completion count for the response
+            $completionCount = $todo->getCompletionCount($date);
+            $completed = $completionCount >= $todo->target_count;
         } else {
             // For regular todos, just toggle the completed status
             $completed = !$todo->completed;
@@ -135,7 +137,7 @@ class PlannerController extends Controller
                 'success' => true,
                 'message' => $message,
                 'completed' => $completed,
-                'completion_count' => $todo->is_habit ? $todo->getCompletionCountAttribute() : null,
+                'completion_count' => $todo->is_habit ? $todo->getCompletionCount($date) : null,
                 'target_count' => $todo->is_habit ? $todo->target_count : null
             ]);
         }

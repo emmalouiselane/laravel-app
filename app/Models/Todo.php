@@ -142,15 +142,17 @@ class Todo extends Model
     /**
      * Get the completion count for a specific date.
      */
-    public function getCompletionCountAttribute()
+    public function getCompletionCount($date = null)
     {
         if (!$this->is_habit) {
             return null;
         }
         
-        $today = now()->toDateString();
+        $date = $date ? Carbon::parse($date) : now();
+        $dateString = $date->toDateString();
+        
         $completion = $this->completions()
-            ->whereDate('completion_date', $today)
+            ->whereDate('completion_date', $dateString)
             ->first();
             
         return $completion ? $completion->count : 0;
