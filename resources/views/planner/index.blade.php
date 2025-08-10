@@ -37,8 +37,10 @@
         margin-bottom: 0.75rem;
     }
     
-    .todo-item.completed {
+    .todo-item.completed .todo-title {
         opacity: 0.7;
+        color: gray;
+        text-decoration: line-through;
     }
     
     .todo-checkbox {
@@ -305,31 +307,39 @@
                         @endif
                     </form>
                     <div class="todo-content ml-5">                        
-                            @if($todo->is_habit)
-                                <div class="flex items-center space-x-2">
+                        @if($todo->is_habit)
+                            <div class="flex items-center space-x-2 {{ $todo->recurrence_ends_at ? '' : 'mt-2' }}">
+                                <span class="todo-title my-auto">{{ $todo->title }}</span>
+                                
+                                <span class="text-xs px-2 py-0.5 bg-primary-100 text-primary-800 rounded-full">
+                                    Habit
+                                </span>
+
+                                @php
+                                    // Calculate streak as of the selected date
+                                    $streak = $todo->calculateStreakForDate($date);
+                                @endphp
+                                
+                                @if($streak > 0)
+                                    <span class="text-xs px-2 py-0.5 bg-gray-100 text-gray-800 rounded-full">
+                                        🔥 {{ $streak }}
+                                    </span>
+                                @endif
+                            </div>
+                        @else
+                            @if($todo->is_recurring)
+                                <div class="flex items-center space-x-2 {{ $todo->recurrence_ends_at ? '' : 'mt-2' }}">
                                     <span class="todo-title my-auto">{{ $todo->title }}</span>
-                                    
-                                    <span class="text-xs px-2 py-0.5 bg-green-100 text-green-800 rounded-full">
-                                        Habit
-                                        @if($todo->current_streak > 0)
-                                            🔥 {{ $todo->current_streak }}
-                                        @endif
+                                    <span class="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
+                                        {{ ucfirst($todo->frequency) }}
                                     </span>
                                 </div>
                             @else
-                                @if($todo->is_recurring)
-                                    <div class="flex items-center space-x-2 {{ $todo->recurrence_ends_at ? '' : 'mt-2' }}">
-                                        <span class="todo-title my-auto">{{ $todo->title }}</span>
-                                        <span class="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
-                                            {{ ucfirst($todo->frequency) }}
-                                        </span>
-                                    </div>
-                                @else
-                                    <div class="flex items-center space-x-2 {{ $todo->recurrence_ends_at ? '' : 'mt-2' }}">
-                                        <span class="todo-title my-auto">{{ $todo->title }}</span>
-                                    </div>
-                                @endif
+                                <div class="flex items-center space-x-2 {{ $todo->recurrence_ends_at ? '' : 'mt-2' }}">
+                                    <span class="todo-title my-auto">{{ $todo->title }}</span>
+                                </div>
                             @endif
+                        @endif
                         
                         <div class="flex items-center space-x-4 mt-1">
                             @php

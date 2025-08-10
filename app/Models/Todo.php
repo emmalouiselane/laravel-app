@@ -334,9 +334,65 @@ class Todo extends Model
      */
     public function getCompletionCountAttribute()
     {
-        return $this->getCompletionCount();
+        return $this->completions()->count();
     }
     
+    /**
+     * Calculate the current streak as of a specific date
+     * @param string|Carbon|null $date The reference date (defaults to today)
+     * @return int The current streak length
+     */
+    public function calculateStreakForDate($date = null)
+    {
+        $date = $date ? Carbon::parse($date) : now();
+        $date = $date->setTimezone(config('app.timezone'))->startOfDay();
+        
+        // Get all unique completion dates up to and including the reference date
+        $completions = $this->completions()
+            ->whereDate('completion_date', '<=', $date)
+            ->orderBy('completion_date', 'desc')
+            ->pluck('completion_date')
+            ->map(function ($date) {
+                return Carbon::parse($date)->startOfDay();
+            })
+            ->unique()
+            ->sort()
+            ->values();
+            
+        if ($completions->isEmpty()) {
+            return 0;
+        }
+        
+        // Start with the most recent completion on or before the reference date
+        $currentStreak = 0;
+        $expectedDate = $date->copy();
+        $completions = $completions->sort()->values();
+        
+        // Check for consecutive days backwards from the reference date
+        // We need at least one completion on or before the reference date
+        for ($i = $completions->count() - 1; $i >= 0; $i--) {
+            $completionDate = $completions[$i];
+            
+            if ($completionDate->isSameDay($expectedDate)) {
+                $currentStreak++;
+                $expectedDate->subDay();
+            } else if ($completionDate < $expectedDate) {
+                // If we find a completion before our expected date, check if it's part of a new streak
+                // Only reset if we're not at the beginning of a potential streak
+                if ($currentStreak === 0) {
+                    // Start a new potential streak from this completion
+                    $currentStreak = 1;
+                    $expectedDate = $completionDate->copy()->subDay();
+                } else {
+                    // We're in the middle of a streak and found a gap
+                    break;
+                }
+            }
+            // If completion is after expected date, we continue to the next one
+        }
+        
+        return $currentStreak;
+    }
     
     /**
      * Increment the completion count for a habit on a specific date.
