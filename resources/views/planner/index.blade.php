@@ -11,7 +11,7 @@
     }
     .planner-header {
         display: flex;
-        justify-content: end;
+        justify-content: space-between;
         align-items: center;
         margin-bottom: 1rem;
     }
@@ -92,38 +92,30 @@
     </header>
     
     <div class="planner-header">
-        <div class="date-navigation">
-            @if($date->toDateString() !== $today)
-                <a href="{{ route('planner.index') }}" 
-                   class="px-3 py-1 bg-primary-100 text-primary-600 rounded hover:bg-primary-200 text-sm">
-                    Today
-                </a>
-            @endif
+            <a href="{{ route('planner.index') }}" 
+                style="width: 60px;"
+               class="px-3 py-1 rounded text-sm {{ $date->toDateString() === $today ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-primary-100 text-primary-600 hover:bg-primary-200' }}"
+               {{ $date->toDateString() === $today ? 'disabled' : '' }}>
+                Today
+            </a>
 
-            <a href="{{ route('planner.index', ['date' => $previousDate]) }}" 
-               class="px-3 py-1 bg-gray-100 rounded hover:bg-gray-200">
-               <x-bladewind::icon name="arrow-left" class="size-4" />
-            </a>
-            <span class="date-display">
-                @if($date->toDateString() === $today)
-                   Today
-                @else
+            <div class="date-navigation">
+                <a href="{{ route('planner.index', ['date' => $previousDate]) }}" class="px-3 py-1 bg-gray-100 rounded hover:bg-gray-200">
+                    <x-bladewind::icon name="arrow-left" class="size-4" />
+                </a>
+                <span class="date-display">
                     {{ $date->format('F j, Y') }}
-                @endif 
-            </span>
-            <a href="{{ route('planner.index', ['date' => $nextDate]) }}" 
-               class="px-3 py-1 bg-gray-100 rounded hover:bg-gray-200">
-                <x-bladewind::icon name="arrow-right" class="size-4" />
-            </a>
+                </span>
+                <a href="{{ route('planner.index', ['date' => $nextDate]) }}" class="px-3 py-1 bg-gray-100 rounded hover:bg-gray-200">
+                    <x-bladewind::icon name="arrow-right" class="size-4" />
+                </a>
+            </div>
 
             <!-- Add Todo Form Toggle Button -->
-            <button type="button" 
-                    onclick="toggleAddForm()" 
-                    style="height: 34px; width: 30px; padding: 0;"
-                    class="bg-primary-600 text-white rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
-                <x-bladewind::icon name="plus" class="size-4" />
+            <button type="button" onclick="toggleAddForm()" 
+                    style="width: 60px;" class="px-3 py-1 rounded text-sm bg-primary-100 text-primary-600 hover:bg-primary-200">
+                Add
             </button>
-        </div>
     </div>
     
     <!-- Add Todo Form (initially hidden) -->
