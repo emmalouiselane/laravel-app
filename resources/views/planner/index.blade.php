@@ -13,7 +13,8 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 1rem;
+        margin: 1rem auto;
+        max-width: 400px;
     }
     
     .date-navigation {
@@ -100,13 +101,15 @@
             </a>
 
             <div class="date-navigation">
-                <a href="{{ route('planner.index', ['date' => $previousDate]) }}" class="px-3 py-1 bg-gray-100 rounded hover:bg-gray-200">
+                <a href="{{ route('planner.index', ['date' => $previousDate]) }}" style="width: 30px; height: 28px;" 
+                    class="px-2 bg-gray-100 rounded hover:bg-gray-200">
                     <x-bladewind::icon name="arrow-left" class="size-4" />
                 </a>
                 <span class="date-display">
                     {{ $date->format('F j, Y') }}
                 </span>
-                <a href="{{ route('planner.index', ['date' => $nextDate]) }}" class="px-3 py-1 bg-gray-100 rounded hover:bg-gray-200">
+                <a href="{{ route('planner.index', ['date' => $nextDate]) }}" style="width: 30px; height: 28px;" 
+                    class="px-2 bg-gray-100 rounded hover:bg-gray-200">
                     <x-bladewind::icon name="arrow-right" class="size-4" />
                 </a>
             </div>

@@ -78,28 +78,33 @@
 
     @if($showLogout)
         <!-- Desktop: Full text + icon -->
-        <x-bladewind::button 
-            tag="a"
-            href="{{ route('logout') }}"
-            type="secondary"
-            size="small"
-            uppercasing="false"
-            button_text_css="text-xs hidden md:inline"
-            icon="lock-closed"
-            class="hidden md:flex"
-        >
-            {{ __('Log Out') }}
-        </x-bladewind::button>
+        <form method="POST" action="{{ route('logout') }}" class="hidden md:block">
+            @csrf
+            <x-bladewind::button 
+                type="submit"
+                type="secondary"
+                size="small"
+                uppercasing="false"
+                button_text_css="text-xs"
+                icon="lock-closed"
+                can_submit="true"
+            >
+                {{ __('Log Out') }}
+            </x-bladewind::button>
+        </form>
         
         <!-- Mobile: Icon only -->
-        <x-bladewind::button 
-            tag="a"
-            href="{{ route('logout') }}"
-            type="secondary"
-            size="small"
-            icon="lock-closed"
-            class="md:hidden mobile-auth-buttons"
-            has_shadow="false"
-        />
+        <form method="POST" action="{{ route('logout') }}" class="md:hidden">
+            @csrf
+            <x-bladewind::button 
+                type="submit"
+                type="secondary"
+                size="small"
+                icon="lock-closed"
+                class="mobile-auth-buttons"
+                has_shadow="false"
+                can_submit="true"
+            />
+        </form>
     @endif
 </div>
