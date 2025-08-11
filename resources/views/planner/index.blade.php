@@ -7,7 +7,7 @@
     .planner-container {
         max-width: 1200px;
         margin: 0 auto;
-        padding: 2rem;
+        padding: 1rem;
     }
     .planner-header {
         display: flex;
@@ -122,7 +122,8 @@
             <!-- Add Todo Form Toggle Button -->
             <button type="button" 
                     onclick="toggleAddForm()" 
-                    class="px-3 py-1 bg-primary-600 text-white rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                    style="height: 34px; width: 30px; padding: 0;"
+                    class="bg-primary-600 text-white rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
                 <x-bladewind::icon name="plus" class="size-4" />
             </button>
         </div>
@@ -286,11 +287,7 @@
                                     {{ $completionCount <= 0 ? 'disabled' : '' }}>
                                     -
                                 </button>
-                                
-                                <span class="habit-count px-2 py-1 text-sm font-medium min-w-[2rem] text-center">
-                                    {{ $completionCount }}/{{ $todo->target_count }}
-                                </span>
-                                
+                                                                
                                 <button type="button"
                                     onclick="updateHabitCount(event, {{ $todo->id }}, 1, '{{ $date->toDateString() }}')"
                                     class="increment-btn h-6 w-6 flex items-center justify-center rounded-full bg-gray-200 hover:bg-gray-300 text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
