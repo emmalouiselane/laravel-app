@@ -13,7 +13,7 @@
         display: flex;
         justify-content: end;
         align-items: center;
-        margin-bottom: 1.5rem;
+        margin-bottom: 1rem;
     }
     
     .date-navigation {
@@ -32,9 +32,6 @@
         align-items: flex-start;
         padding: 1rem;
         background: white;
-        border-radius: 0.5rem;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        margin-bottom: 0.75rem;
     }
     
     .todo-item.completed .todo-title {
@@ -264,121 +261,138 @@
     
     <!-- Todo List -->
     <div class="todo-list">
-        @if($todos->isEmpty())
-            <div class="text-center py-8 text-gray-500">
-                <p>No tasks for {{ $date->format('F j, Y') }}. Add one above!</p>
-            </div>
-        @else
-            @foreach($todos as $todo)
-                @php
-                    $completionCount = $todo->is_habit ? $todo->getCompletionCount($date) : 0;
-                    $isCompleted = $todo->is_habit ? ($completionCount === $todo->target_count) : $todo->completed;
-                @endphp
-                <div class="todo-item {{ $isCompleted ? 'completed' : '' }}" data-todo-id="{{ $todo->id }}">
-                    <form action="{{ route('planner.toggle-complete', $todo) }}" method="POST" class="todo-checkbox m-auto" onsubmit="toggleTodoComplete(event, {{ $todo->id }})">
-                        @csrf
-                        @method('PATCH')
-                        <input type="hidden" name="date" value="{{ $date->toDateString() }}">
-                        @if($todo->is_habit && $todo->target_count > 1)
-                            <div class="flex items-center space-x-1 m-auto">
-                                <button type="button" 
-                                    onclick="updateHabitCount(event, {{ $todo->id }}, -1, '{{ $date->toDateString() }}')"
-                                    class="decrement-btn h-6 w-6 flex items-center justify-center rounded-full bg-gray-200 hover:bg-gray-300 text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                    {{ $completionCount <= 0 ? 'disabled' : '' }}>
-                                    -
-                                </button>
-                                                                
-                                <button type="button"
-                                    onclick="updateHabitCount(event, {{ $todo->id }}, 1, '{{ $date->toDateString() }}')"
-                                    class="increment-btn h-6 w-6 flex items-center justify-center rounded-full bg-gray-200 hover:bg-gray-300 text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                    {{ $completionCount >= $todo->target_count ? 'disabled' : '' }}>
-                                    +
-                                </button>
-                            </div>
-                        @else
-                            <input type="hidden" name="change" :value="this.checked ? 1 : -1">
-                            <input type="checkbox" 
-                                {{ ($todo->is_habit ? $completionCount > 0 : $todo->completed) ? 'checked' : '' }}
-                                onchange="this.previousElementSibling.value = this.checked ? 1 : -1; this.form.submit()"
-                                class="h-5 w-5 text-primary-600 rounded focus:ring-primary-500 cursor-pointer">
-                        @endif
-                    </form>
-                    <div class="todo-content ml-5">                        
-                        @if($todo->is_habit)
-                            <div class="flex items-center space-x-2 {{ $todo->recurrence_ends_at ? '' : 'mt-2' }}">
-                                <span class="todo-title my-auto">{{ $todo->title }}</span>
-                                
-                                <span class="text-xs px-2 py-0.5 bg-primary-100 text-primary-800 rounded-full">
-                                    Habit
-                                </span>
-
-                                @php
-                                    // Calculate streak as of the selected date
-                                    $streak = $todo->calculateStreakForDate($date);
-                                @endphp
-                                
-                                @if($streak > 0)
-                                    <span class="text-xs px-2 py-0.5 bg-gray-100 text-gray-800 rounded-full">
-                                        🔥 {{ $streak }}
-                                    </span>
+        @php
+            // Group todos by type
+            $groupedTodos = [
+                'habits' => $todos->where('is_habit', true),
+                'recurring' => $todos->where('is_recurring', true)->where('is_habit', false),
+                'one_time' => $todos->where('is_habit', false)->where('is_recurring', false)
+            ];
+            
+            $sectionTitles = [
+                'habits' => 'Habits',
+                'one_time' => 'One-time Tasks',
+                'recurring' => 'Recurring Tasks'
+            ];
+        @endphp
+        
+        @foreach($groupedTodos as $type => $todosGroup)
+            <div class="border rounded-lg overflow-hidden mb-4">
+                <button type="button" 
+                        onclick="toggleAccordion(this, '{{ $type }}')" 
+                        class="w-full px-4 py-3 bg-gray-50 hover:bg-gray-100 text-left font-medium flex justify-between items-center focus:outline-none">
+                    <span>{{ $sectionTitles[$type] }} ({{ $todosGroup->count() }})</span>
+                    <x-bladewind::icon name="chevron-up" class="size-5 transition-transform duration-200 accordion-icon" data-type="{{ $type }}" />
+                </button>
+                
+                <div id="{{ $type }}-content" class="divide-y">
+                    @foreach($todosGroup as $todo)
+                        @php
+                            $completionCount = $todo->is_habit ? $todo->getCompletionCount($date) : 0;
+                            $isCompleted = $todo->is_habit ? ($completionCount === $todo->target_count) : $todo->completed;
+                        @endphp
+                        <div class="todo-item {{ $isCompleted ? 'completed' : '' }}" data-todo-id="{{ $todo->id }}">
+                            <form action="{{ route('planner.toggle-complete', $todo) }}" method="POST" class="todo-checkbox m-auto" onsubmit="toggleTodoComplete(event, {{ $todo->id }})">
+                                @csrf
+                                @method('PATCH')
+                                <input type="hidden" name="date" value="{{ $date->toDateString() }}">
+                                @if($todo->is_habit && $todo->target_count > 1)
+                                    <div class="flex items-center space-x-1 m-auto">
+                                        <button type="button" 
+                                            onclick="updateHabitCount(event, {{ $todo->id }}, -1, '{{ $date->toDateString() }}')"
+                                            class="decrement-btn h-6 w-6 flex items-center justify-center rounded-full bg-gray-200 hover:bg-gray-300 text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                            {{ $completionCount <= 0 ? 'disabled' : '' }}>
+                                            -
+                                        </button>
+                                                            
+                                        <button type="button"
+                                            onclick="updateHabitCount(event, {{ $todo->id }}, 1, '{{ $date->toDateString() }}')"
+                                            class="increment-btn h-6 w-6 flex items-center justify-center rounded-full bg-gray-200 hover:bg-gray-300 text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                            {{ $completionCount >= $todo->target_count ? 'disabled' : '' }}>
+                                            +
+                                        </button>
+                                    </div>
+                                @else
+                                    <input type="hidden" name="change" :value="this.checked ? 1 : -1">
+                                    <input type="checkbox" 
+                                        {{ ($todo->is_habit ? $completionCount > 0 : $todo->completed) ? 'checked' : '' }}
+                                        onchange="this.previousElementSibling.value = this.checked ? 1 : -1; this.form.submit()"
+                                        class="h-5 w-5 text-primary-600 rounded focus:ring-primary-500 cursor-pointer">
                                 @endif
+                            </form>
+                            <div class="todo-content ml-5">                        
+                                @if($todo->is_habit)
+                                    <div class="flex items-center space-x-2 {{ $todo->recurrence_ends_at ? '' : 'mt-2' }}">
+                                        <span class="todo-title my-auto">{{ $todo->title }}</span>
+
+                                        @php
+                                            // Calculate streak as of the selected date
+                                            $streak = $todo->calculateStreakForDate($date);
+                                        @endphp
+                                        
+                                        @if($streak > 0)
+                                            <span class="text-xs px-2 py-0.5 bg-gray-100 text-gray-800 rounded-full">
+                                                🔥 {{ $streak }}
+                                            </span>
+                                        @endif
+                                    </div>
+                                @else
+                                    @if($todo->is_recurring)
+                                        <div class="flex items-center space-x-2 {{ $todo->recurrence_ends_at ? '' : 'mt-2' }}">
+                                            <span class="todo-title my-auto">{{ $todo->title }}</span>
+                                            <span class="text-xs px-2 py-0.5 bg-primary-100 text-primary-800 rounded-full">
+                                                {{ ucfirst($todo->frequency) }}
+                                            </span>
+                                        </div>
+                                    @else
+                                        <div class="flex items-center space-x-2 {{ $todo->recurrence_ends_at ? '' : 'mt-2' }}">
+                                            <span class="todo-title my-auto">{{ $todo->title }}</span>
+                                        </div>
+                                    @endif
+                                @endif
+                    
+                                <div class="flex items-center space-x-4 mt-1">
+                                    @php
+                                        $userTime = $todo->due_date->setTimezone(auth()->user()->timezone);
+                                    @endphp
+                                    @if(!$userTime->isMidnight())
+                                        <div class="todo-time text-sm text-gray-500">
+                                            {{ $userTime->format('g:i A') }}
+                                        </div>
+                                    @endif
+                                    
+                                    @if($todo->is_habit && $todo->target_count > 1)
+                                        <div class="flex items-center space-x-1">
+                                            @for($i = 0; $i < $todo->target_count; $i++)
+                                                <div class="progress-dot w-2 h-2 rounded-full {{ $i < $completionCount ? 'bg-green-500' : 'bg-gray-200' }}"></div>
+                                            @endfor
+                                            <span class="habit-count text-xs text-gray-500 ml-1">
+                                                ({{ $completionCount }}/{{ $todo->target_count }})
+                                            </span>
+                                        </div>
+                                    @endif
+                                    
+                                    @if($todo->is_recurring && $todo->recurrence_ends_at)
+                                        <div class="text-xs text-gray-500">
+                                            Ends {{ $todo->recurrence_ends_at->format('M j, Y') }}
+                                        </div>
+                                    @endif
+                                </div>
                             </div>
-                        @else
-                            @if($todo->is_recurring)
-                                <div class="flex items-center space-x-2 {{ $todo->recurrence_ends_at ? '' : 'mt-2' }}">
-                                    <span class="todo-title my-auto">{{ $todo->title }}</span>
-                                    <span class="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
-                                        {{ ucfirst($todo->frequency) }}
-                                    </span>
-                                </div>
-                            @else
-                                <div class="flex items-center space-x-2 {{ $todo->recurrence_ends_at ? '' : 'mt-2' }}">
-                                    <span class="todo-title my-auto">{{ $todo->title }}</span>
-                                </div>
-                            @endif
-                        @endif
-                        
-                        <div class="flex items-center space-x-4 mt-1">
-                            @php
-                                $userTime = $todo->due_date->setTimezone(auth()->user()->timezone);
-                            @endphp
-                            @if(!$userTime->isMidnight())
-                                <div class="todo-time text-sm text-gray-500">
-                                    {{ $userTime->format('g:i A') }}
-                                </div>
-                            @endif
-                            
-                            @if($todo->is_habit && $todo->target_count > 1)
-                                <div class="flex items-center space-x-1">
-                                    @for($i = 0; $i < $todo->target_count; $i++)
-                                        <div class="progress-dot w-2 h-2 rounded-full {{ $i < $completionCount ? 'bg-green-500' : 'bg-gray-200' }}"></div>
-                                    @endfor
-                                    <span class="habit-count text-xs text-gray-500 ml-1">
-                                        ({{ $completionCount }}/{{ $todo->target_count }})
-                                    </span>
-                                </div>
-                            @endif
-                            
-                            @if($todo->is_recurring && $todo->recurrence_ends_at)
-                                <div class="text-xs text-gray-500">
-                                    Ends {{ $todo->recurrence_ends_at->format('M j, Y') }}
-                                </div>
-                            @endif
+                            <div class="todo-actions">
+                                <x-bladewind::button.circle icon="pencil" outline="true" size="tiny" color="gray" onclick="editTodo({{ $todo->id }})" />
+                                
+                                <form action="{{ route('planner.destroy', $todo) }}" method="POST" class="inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <x-bladewind::button.circle icon="trash" outline="true" size="tiny" can_submit="true" color="gray" />
+                                </form>
+                            </div>
                         </div>
-                    </div>
-                    <div class="todo-actions">
-                        <x-bladewind::button.circle icon="pencil" class="size-2" outline="true" size="tiny"
-                                                    onclick="editTodo({{ $todo->id }})" />
-                        
-                        <form action="{{ route('planner.destroy', $todo) }}" method="POST" class="inline">
-                            @csrf
-                            @method('DELETE')
-                            <x-bladewind::button.circle icon="trash" class="size-2" outline="true" size="tiny" can_submit="true" />
-                        </form>
-                    </div>
+                    @endforeach
                 </div>
-            @endforeach
-        @endif
+            </div>
+        @endforeach
     </div>
 </div>
 
@@ -391,6 +405,20 @@
 
 @push('scripts')
 <script>
+    // Toggle accordion sections
+    function toggleAccordion(button, type) {
+        const content = document.getElementById(`${type}-content`);
+        const icon = button.querySelector('.accordion-icon');
+        
+        if (content.classList.contains('hidden')) {
+            content.classList.remove('hidden');
+            icon.style.transform = 'rotate(0deg)';
+        } else {
+            content.classList.add('hidden');
+            icon.style.transform = 'rotate(-180deg)';
+        }
+    }
+    
     // Function to toggle task type specific fields in the add form
     function toggleTaskTypeFields(type, formType = 'add') {
         const prefix = formType === 'add' ? 'add' : 'edit';
