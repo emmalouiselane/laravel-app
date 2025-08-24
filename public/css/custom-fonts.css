@@ -1,6 +1,6 @@
-/* Force Josefin Slab on all elements */
+/* Force Edu NSW ACT Cursive on all elements */
 * {
-    font-family: 'Josefin Slab', serif !important;
+    font-family: "Poiret One", sans-serif !important;
 }
 
 /* Override Bladewind's font settings */
@@ -26,7 +26,7 @@ button,
 .bw-tooltip,
 [class^='bw-'],
 [class*=' bw-'] {
-    font-family: 'Josefin Slab', serif !important;
+    font-family: "Poiret One", sans-serif !important;
 }
 
 /* Ensure form elements use the correct font */
@@ -34,5 +34,5 @@ input,
 select,
 textarea,
 button {
-    font-family: 'Josefin Slab', serif !important;
+    font-family: "Poiret One", sans-serif !important;
 }

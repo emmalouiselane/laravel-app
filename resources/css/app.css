@@ -7,7 +7,7 @@
 @source '../**/*.js';
 
 @theme {
-    --font-sans: 'Josefin Slab', serif;
+    --font-sans: 'Edu NSW ACT Cursive', cursive;
 }
 
 /* Custom Styling */
