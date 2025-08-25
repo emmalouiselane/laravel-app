@@ -42,19 +42,20 @@
                 extend: {
                     colors: {
                         primary: {
-                            50: '#f0faf4',
-                            100: '#dbf5e6',
-                            200: '#b8ebcd',
-                            300: '#8adcac',
-                            400: '#63d688',
-                            500: '#3ac162',
-                            600: '#2b9c4e',
-                            700: '#247b40',
-                            800: '#216136',
-                            900: '#1d4f2e',
+                            50:  '#eaf6ed',  // very light mint-green
+                            100: '#d2efd3',
+                            200: '#a9e3b2',
+                            300: '#7fd892',
+                            400: '#57ce74',
+                            500: '#2E8552', // your main primary
+                            600: '#276e47',
+                            700: '#20583b',
+                            800: '#1b4630',
+                            900: '#153426',
                         },
-                        secondary: '#FDFDFC',
-                        dark: '#1b1b18',
+                        secondary: '#003366', // Navy
+                        accent: '#B2F2BB',    // Light Mint
+                        dark: '#1b1b18',      // Dark neutral
                         green: '#22c55e',
                     }
                 }
