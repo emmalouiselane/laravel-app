@@ -65,6 +65,20 @@
                     </x-bladewind::button>
                 </a>
             </div>
+
+            <div class="bg-gray-50 p-4 rounded-lg text-center">
+                <p class="m-2">Monthly Budgeting tool with direct debit tracking</p>
+                <a href="{{ route('budget.index') }}">
+                    <x-bladewind::button 
+                        type="primary"
+                        size="small"
+                        uppercasing="false"
+                        button_text_css="text-base"
+                    >
+                        {{ __('Monthly Budget') }}
+                    </x-bladewind::button>
+                </a>
+            </div>
         </div>
     </div>
 </div>

@@ -17,8 +17,7 @@ class PlannerController extends Controller
      */
     public function index(Request $request)
     {
-        $date = $request->input('date', now()->toDateString());
-        $date = Carbon::parse($date);
+        $date = Carbon::parse($request->input('date', now()->toDateString()));
         
         $todos = Todo::forUser(Auth::id())
             ->forDate($date)

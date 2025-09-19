@@ -82,7 +82,7 @@
 
 @section('content')
 <div class="planner-container">
-<header class="flex justify-between items-center mb-4">
+    <header class="flex justify-between items-center mb-4">
         <h1 class="text-2xl font-bold">Daily Planner</h1>
 
         <x-auth-buttons 

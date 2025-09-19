@@ -29,6 +29,11 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/{todo}', [\App\Http\Controllers\PlannerController::class, 'destroy'])->name('destroy');
     });
     
+    // Budget routes
+    Route::prefix('budget')->name('budget.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\BudgetController::class, 'index'])->name('index');
+    });
+    
     // Logout route
     Route::post('/logout', function (\Illuminate\Http\Request $request) {
         Auth::logout();
