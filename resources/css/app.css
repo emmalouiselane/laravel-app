@@ -8,6 +8,22 @@
 
 @theme {
     --font-sans: 'Edu NSW ACT Cursive', cursive;
+    /* Primary palette based on #00bfa5 */
+    --color-primary-50:  #e6fffb;
+    --color-primary-100: #bffaf2;
+    --color-primary-200: #99f2e6;
+    --color-primary-300: #66e6d6;
+    --color-primary-400: #33d9c6;
+    --color-primary-500: #00bfa5; /* base */
+    --color-primary-600: #00a891;
+    --color-primary-700: #008c79;
+    --color-primary-800: #007263;
+    --color-primary-900: #00564a;
+
+    /* Harmonized secondary (deep teal) and Ko-fi-like accent red */
+    --color-secondary: #007a6c; /* deep teal to complement #00bfa5 */
+    --color-accent:    #ff5e5b; /* Ko-fi red */
+    --color-dark:      #1b1b18; /* Dark neutral */
 }
 
 /* Custom Styling */
@@ -32,4 +48,72 @@ main {
 }
 footer {
     flex-shrink: 0;
+    width: 100%;
+}
+
+/* Overrides: ensure Tailwind primary background utilities use our @theme values */
+:root .bg-primary-50  { background-color: var(--color-primary-50)  !important; }
+:root .bg-primary-100 { background-color: var(--color-primary-100) !important; }
+:root .bg-primary-200 { background-color: var(--color-primary-200) !important; }
+:root .bg-primary-300 { background-color: var(--color-primary-300) !important; }
+:root .bg-primary-400 { background-color: var(--color-primary-400) !important; }
+:root .bg-primary-500 { background-color: var(--color-primary-500) !important; }
+:root .bg-primary-600 { background-color: var(--color-primary-600) !important; }
+:root .bg-primary-700 { background-color: var(--color-primary-700) !important; }
+:root .bg-primary-800 { background-color: var(--color-primary-800) !important; }
+:root .bg-primary-900 { background-color: var(--color-primary-900) !important; }
+/* Text primary scale */
+:root .text-primary-50  { color: var(--color-primary-50)  !important; }
+:root .text-primary-100 { color: var(--color-primary-100) !important; }
+:root .text-primary-200 { color: var(--color-primary-200) !important; }
+:root .text-primary-300 { color: var(--color-primary-300) !important; }
+:root .text-primary-400 { color: var(--color-primary-400) !important; }
+:root .text-primary-500 { color: var(--color-primary-500) !important; }
+:root .text-primary-600 { color: var(--color-primary-600) !important; }
+:root .text-primary-700 { color: var(--color-primary-700) !important; }
+:root .text-primary-800 { color: var(--color-primary-800) !important; }
+:root .text-primary-900 { color: var(--color-primary-900) !important; }
+
+/* Accent overrides */
+:root .bg-accent  { background-color: var(--color-accent) !important; }
+:root .text-accent { color:            var(--color-accent) !important; }
+
+/* Base: make native form controls use primary as currentColor/accent */
+@layer base {
+  input[type="checkbox"],
+  input[type="radio"] {
+    color: var(--color-primary-600);
+    accent-color: var(--color-primary-600);
+  }
+}
+
+/* Site-wide: disable text selection by default, but allow on interactive/opt-in elements */
+@layer base {
+  html, body {
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  /* Allow selection where it makes sense */
+  input, textarea, select, button, label,
+  [contenteditable="true"],
+  .selectable {
+    -webkit-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+  }
+}
+
+/* Force spans to be unselectable globally */
+@layer base {
+  span, label {
+    -webkit-user-select: none !important;
+    -ms-user-select: none !important;
+    user-select: none !important;
+  }
+}
+
+/* Modal */
+.modal-background {
+    background-color: rgba(0, 0, 0, 0.3);
 }

@@ -92,7 +92,7 @@ ksort($timezoneOptions);
                     </x-bladewind::button.circle>
                     
                     <!-- Simple Modal -->
-                    <div id="editAccountModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                    <div id="editAccountModal" class="hidden fixed inset-0 modal-background flex items-center justify-center p-4 z-50">
                         <form id="timezoneForm" method="POST" action="{{ route('account.update-timezone') }}" class="bg-white rounded-lg w-full max-w-md">
                             @csrf
                             @method('PATCH')

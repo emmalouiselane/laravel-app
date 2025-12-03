@@ -32,6 +32,13 @@ Route::middleware(['auth'])->group(function () {
     // Budget routes
     Route::prefix('budget')->name('budget.')->group(function () {
         Route::get('/', [\App\Http\Controllers\BudgetController::class, 'index'])->name('index');
+        Route::get('/settings', [\App\Http\Controllers\BudgetController::class, 'settings'])->name('settings');
+        Route::patch('/settings', [\App\Http\Controllers\BudgetController::class, 'updateSettings'])->name('settings.update');
+        Route::post('/payments', [\App\Http\Controllers\BudgetController::class, 'storePayment'])->name('payments.store');
+        Route::patch('/payments/{payment}', [\App\Http\Controllers\BudgetController::class, 'updatePayment'])->name('payments.update');
+        Route::patch('/payments/{payment}/mark-paid', [\App\Http\Controllers\BudgetController::class, 'markPaymentPaid'])->name('payments.mark-paid');
+        Route::patch('/occurrences/{occurrence}/mark-paid', [\App\Http\Controllers\BudgetController::class, 'markOccurrencePaid'])->name('occurrences.mark-paid');
+        Route::delete('/payments/{payment}', [\App\Http\Controllers\BudgetController::class, 'destroyPayment'])->name('payments.destroy');
     });
     
     // Logout route

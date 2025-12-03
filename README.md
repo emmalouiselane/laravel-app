@@ -1,3 +1,6 @@
+If you love what I do or have any requests of what I should do next, please consider supporting me on Ko-fi!
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/H2H11F73H5)
+
 # Common
 
 ## Features
@@ -22,14 +25,17 @@ A comprehensive task management system built with Laravel, featuring one-time ta
 
 # Budget Management Application
 
-A comprehensive budget management system built with Laravel, featuring monthly budgeting with direct debit tracking.
+A comprehensive budget management system built with Laravel, featuring budgeting with direct debit tracking and flexible pay periods.
 
 ## Features
 
-- **Budget Tracking**: Create, read, update, and delete payments / budgets
-- **Budget Types**:
-  - Monthly budgets with direct debit tracking
-- **Monthly Budget**: View and manage budgets by month
+- **Budget Tracking**: Create, read, update, and delete payments/budgets
+- **Recurring Payments**: Repeatable payments with frequency options (weekly, monthly, yearly)
+- **Occurrence Tracking**: Each recurrence is generated as a Payment Occurrence and can be marked as paid individually
+- **Pay Period Modes**: Weekly or Monthly pay periods
+  - Monthly supports a configurable start day (e.g., 28th)
+- **Responsive UI/UX**: Overlay add/edit forms, mobile-friendly layout, accent-themed buttons
+- **Totals & Ordering**: Totals for incoming/outgoing/net/remaining, occurrences ordered by date, then direction, then amount (desc)
 
 
 # Development Notes
@@ -113,6 +119,29 @@ A comprehensive budget management system built with Laravel, featuring monthly b
 3. Use the date picker to view tasks for specific dates
 4. Create new tasks by clicking the "Add Task" button
 5. Mark tasks as complete or delete them as needed
+
+### Planner (Todos)
+
+1. Navigate to the Planner page from the dashboard
+2. Use the date picker to view tasks for specific dates
+3. Create new tasks by clicking the "Add Task" button
+   - Choose task type: one-time, recurring, or habit
+   - For recurring tasks, set frequency and optional end date
+   - For habits, set target count and whether skippable
+4. Mark tasks as complete or delete them as needed
+5. Habits track progress toward their target count per day
+
+### Budget
+
+1. Navigate to the Budget page from the dashboard
+2. Use the header to switch pay periods (Current, previous/next)
+3. Add a payment using the overlay form
+   - Check "Repeatable" to enable recurring fields
+   - Choose Frequency (weekly, monthly, yearly) and optional Repeat End Date
+4. Review generated occurrences within the selected pay period
+   - Each occurrence can be marked as paid individually
+5. Totals show Incoming, Outgoing, Net Leftover, and Remaining Unpaid
+6. Open Settings to choose pay period mode (weekly or monthly) and, for monthly, select a start day
 
 ## Development
 

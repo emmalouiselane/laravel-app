@@ -51,9 +51,9 @@
         </div>
         <h2 class="text-xl font-semibold text-center mb-2">Welcome back, {{ $user->name }}!</h2>
         
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
             <div class="bg-gray-50 p-4 rounded-lg text-center">
-                <p class="m-2">Daily planner with to-do list and habit tracker</p>
+                <p class="my-2">Daily planner with to-do list and habit tracker</p>
                 <a href="{{ route('planner.index') }}">
                     <x-bladewind::button 
                         type="primary"
@@ -67,7 +67,7 @@
             </div>
 
             <div class="bg-gray-50 p-4 rounded-lg text-center">
-                <p class="m-2">Monthly Budgeting tool with direct debit tracking</p>
+                <p class="my-2">Monthly Budgeting tool with direct debit tracking</p>
                 <a href="{{ route('budget.index') }}">
                     <x-bladewind::button 
                         type="primary"

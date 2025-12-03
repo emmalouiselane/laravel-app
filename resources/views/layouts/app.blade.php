@@ -26,43 +26,9 @@
     <!-- BladewindUI CSS -->
     <link href="{{ asset('vendor/bladewind/css/animate.min.css') }}" rel="stylesheet" />
     <link href="{{ asset('vendor/bladewind/css/bladewind-ui.min.css') }}" rel="stylesheet" />
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            content: [
-                "./resources/**/*.blade.php",
-                "./vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php",
-                "./vendor/mkocansey/bladewind/**/*.php",
-                "./vendor/mkocansey/bladewind/resources/views/components/**/*.blade.php"
-            ],
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        primary: {
-                            50:  '#eaf6ed',  // very light mint-green
-                            100: '#d2efd3',
-                            200: '#a9e3b2',
-                            300: '#7fd892',
-                            400: '#57ce74',
-                            500: '#2E8552', // your main primary
-                            600: '#276e47',
-                            700: '#20583b',
-                            800: '#1b4630',
-                            900: '#153426',
-                        },
-                        secondary: '#003366', // Navy
-                        accent: '#B2F2BB',    // Light Mint
-                        dark: '#1b1b18',      // Dark neutral
-                        green: '#22c55e',
-                    }
-                }
-            },
-            plugins: [],
-        }
-    </script>
+
+    <!-- App assets via Vite (loads Tailwind and your custom CSS/JS) -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <script src="https://tinylytics.app/embed/ZqiXX112qeb4C8pdyGQg.js" defer></script>
     
@@ -73,8 +39,18 @@
         @yield('content')
     </main>
     
+    <script src='https://storage.ko-fi.com/cdn/scripts/overlay-widget.js'></script>
+    <script>
+    kofiWidgetOverlay.draw('sparklane', {
+        'type': 'floating-chat',
+        'floating-chat.donateButton.text': 'Support Me',
+        'floating-chat.donateButton.background-color': '#00bfa5',
+        'floating-chat.donateButton.text-color': '#fff'
+    });
+    </script>
+
     <footer class="bg-gray-100 py-4 mt-auto">
-        <div class="container mx-auto px-4 text-center text-gray-600 text-sm">
+        <div class="container text-right text-gray-600 text-sm pr-5" style="line-height: 46px;">
             Version {{ env('APP_RELEASE', '1.0.0') }}
         </div>
     </footer>

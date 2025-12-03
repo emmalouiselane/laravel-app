@@ -6,6 +6,7 @@
 <style>
     .budget-container {
         max-width: 1200px;
+        width: 100%;
         margin: 0 auto;
         padding: 1rem;
     }
@@ -14,12 +15,26 @@
         justify-content: space-between;
         align-items: center;
         margin: 1rem auto;
-        max-width: 400px;
+        flex-wrap: wrap;
     }
     
     .date-display {
         font-size: 0.875rem;
         font-weight: 600;
+    }
+
+    .date-navigation {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .date-navigation {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        min-width: 200px;
+        justify-content: center;
     }
     
     .budget-item {
@@ -63,69 +78,409 @@
     .budget-actions {
         margin: auto;
     }
-    
-    /* .add-todo-form {
-        background: white;
-        border-radius: 0.5rem;
-        padding: 1.5rem;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        margin-bottom: 1.5rem;
-    } */
+
+    .settings-button {
+        width: 30px;
+        height: 28px;
+        padding: 0;
+    }
+
+    @media (max-width: 640px) {
+        /* Overlay panel margins for small screens */
+        #add-payment-panel {
+            left: 0.5rem;
+            right: 0.5rem;
+        }
+        /* List items stack nicely */
+        .budget-item { flex-direction: column; gap: 0.5rem; }
+        .budget-title { flex-direction: column; align-items: flex-start; gap: 0.25rem; }
+        .budget-title .flex { flex-wrap: wrap; }
+        .budget-title .font-semibold { word-break: break-word; }
+        .budget-description { flex-direction: column; align-items: flex-start; gap: 0.25rem; }
+        .budget-item .flex.items-center.gap-1 { flex-wrap: wrap; row-gap: 0.25rem; }
+        /* Edit modal full width */
+        #editPaymentModal > div { width: 100% !important; max-width: 100% !important; }
+    }
 </style>
 @endpush
 
 @section('content')
-<div class="budget-container">
+<div class="budget-container relative">
     <header class="flex justify-between items-center mb-4">
         <h1 class="text-2xl font-bold">Budget</h1>
 
-        <x-auth-buttons 
-            :showDashboard="true"
-            :showAccount="true"
-            :showLogout="true"
-        />
+        <div class="flex items-center gap-2">
+            <a href="{{ route('budget.settings') }}" class="settings-button bg-gray-100 text-gray-700 rounded hover:bg-gray-200 flex items-center justify-center" title="Settings">
+                <x-bladewind::icon name="cog" class="size-4" />
+            </a>
+            <x-auth-buttons 
+                :showDashboard="true"
+                :showAccount="true"
+                :showLogout="true"
+            />
+        </div>
     </header>
     
     <div class="budget-header">
-        <a href="{{ route('budget.index') }}" 
-            style="width: 90px;"
-            class="px-3 py-1 rounded text-sm {{ $date->format('m-Y') === $today->format('m-Y') ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-primary-100 text-primary-600 hover:bg-primary-200' }}"
-            {{ $date->format('m-Y') === $today->format('m-Y') ? 'disabled' : '' }}>
-            This Month
-        </a>
-        
+        <!-- Current -->
+        <div class="flex items-center">
+            <a href="{{ route('budget.index') }}" 
+               class="px-3 py-1 rounded text-sm {{ $payPeriod['is_current'] ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-primary-100 text-primary-600 hover:bg-primary-200' }}"
+               {{ $payPeriod['is_current'] ? 'disabled' : '' }}>
+                Current
+            </a>
+        </div>
 
-        <div class="date-navigation">
-            <a href="{{ route('budget.index', ['date' => $previousMonth]) }}" style="width: 30px; height: 28px;" 
-                class="px-2 bg-gray-100 rounded hover:bg-gray-200">
+        <!-- Date Navigation (center) -->
+        <div class="date-navigation flex items-center gap-2">
+            <a href="{{ route('budget.index', ['date' => $payPeriod['previous_period']]) }}" 
+                style="width: 30px; height: 28px;" 
+                class="px-2 bg-gray-100 rounded hover:bg-gray-200 flex items-center justify-center">
                 <x-bladewind::icon name="arrow-left" class="size-4" />
             </a>
-            <span class="date-display">
-                {{ $date->format('F Y') }}
-            </span>
-            <a href="{{ route('budget.index', ['date' => $nextMonth]) }}" style="width: 30px; height: 28px;" 
-                class="px-2 bg-gray-100 rounded hover:bg-gray-200">
+            <div class="text-center">
+                <div class="date-display">
+                    {{ $payPeriod['start_date']->format('j M') }} - {{ $payPeriod['end_date']->format('j M Y') }}
+                </div>
+            </div>
+            <a href="{{ route('budget.index', ['date' => $payPeriod['next_period']]) }}" 
+                style="width: 30px; height: 28px;" 
+                class="px-2 bg-gray-100 rounded hover:bg-gray-200 flex items-center justify-center">
                 <x-bladewind::icon name="arrow-right" class="size-4" />
             </a>
         </div>
 
-        <!-- Add Budget Form Toggle Button -->
-        <button type="button" disabled
-                style="width: 60px;" class="px-3 py-1 rounded text-sm bg-primary-100 text-primary-600 hover:bg-primary-200">
-            Add
-        </button>
+        <!-- Add (right) -->
+        <div class="flex items-center">
+            <button type="button" id="add-payment-toggle"
+                class="px-3 py-1 rounded text-sm bg-accent text-white hover:opacity-90">
+                Add
+            </button>
+        </div>
     </div>
-    
- 
-    <!-- Budget List -->
-    <div class="budget-list">
-      ** IN DEVELOPMENT **
-    </div>
-</div>
 
-@push('scripts')
-<script>
-   
+    @if (session('success'))
+        <div id="toast" class="fixed right-4 top-4 z-50 bg-green-600 text-white px-4 py-3 rounded shadow flex items-start gap-3">
+            <div class="pt-0.5">
+                <x-bladewind::icon name="check-circle" class="size-5" />
+            </div>
+            <div>{{ session('success') }}</div>
+            <button type="button" id="toast-close" class="ml-2 text-white/80 hover:text-white">&times;</button>
+        </div>
+    @endif
+
+    @if ($errors->any())
+        <div class="mb-4 p-3 rounded bg-red-50 text-red-700">
+            <ul class="list-disc pl-5">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    <div id="add-payment-panel" class="{{ $errors->any() ? '' : 'hidden' }} absolute z-10 left-4 right-4 bg-white rounded shadow p-4">
+        <div class="flex justify-between items-center mb-3">
+            <h2 class="font-semibold">Add Payment</h2>
+            <button type="button" id="add-payment-close" class="text-gray-400 hover:text-gray-600" aria-label="Close">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+        <form action="{{ route('budget.payments.store') }}" method="POST" class="grid grid-cols-1 md:grid-cols-5 gap-3">
+            @csrf
+            <div>
+                <label for="date" class="block text-sm font-medium mb-1">Date</label>
+                <input id="date" name="date" type="date" value="{{ old('date', now()->toDateString()) }}" class="w-full border rounded px-2 py-1" required>
+            </div>
+            <div>
+                <label for="amount" class="block text-sm font-medium mb-1">Amount</label>
+                <input id="amount" name="amount" type="number" step="0.01" value="{{ old('amount') }}" class="w-full border rounded px-2 py-1" placeholder="0.00" required>
+            </div>
+            <div>
+                <label for="name" class="block text-sm font-medium mb-1">Name</label>
+                <input id="name" name="name" type="text" value="{{ old('name') }}" class="w-full border rounded px-2 py-1" placeholder="e.g. Rent, Salary" required>
+            </div>
+            <div>
+                <label for="status" class="block text-sm font-medium mb-1">Status</label>
+                <select id="status" name="status" class="w-full border rounded px-2 py-1" required>
+                    <option value="pending" {{ old('status')==='pending' ? 'selected' : '' }}>pending</option>
+                    <option value="paid" {{ old('status')==='paid' ? 'selected' : '' }}>paid</option>
+                    <option value="failed" {{ old('status')==='failed' ? 'selected' : '' }}>failed</option>
+                </select>
+            </div>
+            <div>
+                <label for="direction" class="block text-sm font-medium mb-1">Direction</label>
+                <select id="direction" name="direction" class="w-full border rounded px-2 py-1" required>
+                    <option value="outgoing" {{ old('direction')==='outgoing' ? 'selected' : '' }}>outgoing</option>
+                    <option value="incoming" {{ old('direction')==='incoming' ? 'selected' : '' }}>incoming</option>
+                </select>
+            </div>
+            <div class="flex items-center">
+                <label class="inline-flex items-center gap-2">
+                    <input type="checkbox" id="repeatable" name="repeatable" value="1" class="text-primary-600" {{ old('repeatable') ? 'checked' : '' }}>
+                    <span class="text-sm">Repeatable</span>
+                </label>
+            </div>
+            <div class="md:col-span-2 {{ old('repeatable') ? '' : 'opacity-50' }}" id="repeat-fields">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label for="frequency" class="block text-sm font-medium mb-1">Frequency</label>
+                        <select id="frequency" name="frequency" class="w-full border rounded px-2 py-1" {{ old('repeatable') ? '' : 'disabled' }}>
+                            <option value="">-- select --</option>
+                            <option value="weekly" {{ old('frequency')==='weekly' ? 'selected' : '' }}>weekly</option>
+                            <option value="monthly" {{ old('frequency')==='monthly' ? 'selected' : '' }}>monthly</option>
+                            <option value="yearly" {{ old('frequency')==='yearly' ? 'selected' : '' }}>yearly</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="repeat_end_date" class="block text-sm font-medium mb-1">Repeat Ends</label>
+                        <input id="repeat_end_date" name="repeat_end_date" type="date" value="{{ old('repeat_end_date') }}" class="w-full border rounded px-2 py-1" {{ old('repeatable') ? '' : 'disabled' }}>
+                    </div>
+                </div>
+            </div>
+            <div class="md:col-span-5 flex justify-end">
+                <button type="submit" class="px-3 py-1 rounded text-sm bg-primary-600 text-white hover:bg-primary-700">Add</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Totals Summary -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+        @php
+            function formatBudgetAmount($amount) {
+                $sign = $amount == 0 ? '' : ($amount > 0 ? '+' : '-');
+                return $sign . '£' . number_format(abs((float)$amount), 2);
+            }
+        @endphp
+        <div class="bg-white rounded shadow p-3">
+            <div class="text-xs text-gray-500">Incoming</div>
+            <div class="text-lg font-semibold text-green-700">
+                {{ formatBudgetAmount($incomingTotal) }}
+            </div>
+        </div>
+        <div class="bg-white rounded shadow p-3">
+            <div class="text-xs text-gray-500">Outgoing</div>
+            <div class="text-lg font-semibold text-red-700">
+                {{ formatBudgetAmount($outgoingTotal) }}
+            </div>
+        </div>
+        <div class="bg-white rounded shadow p-3">
+            <div class="text-xs text-gray-500">Net Leftover</div>
+            <div class="text-lg font-semibold {{ $netTotal >= 0 ? 'text-green-700' : 'text-red-700' }}">
+                {{ formatBudgetAmount($netTotal) }}
+            </div>
+        </div>
+        <div class="bg-white rounded shadow p-3">
+            <div class="text-xs text-gray-500">Remaining Unpaid</div>
+            <div class="text-lg font-semibold {{ $remainingUnpaid >= 0 ? 'text-blue-700' : 'text-red-700' }}">
+                {{ formatBudgetAmount($remainingUnpaid) }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Occurrences List -->
+    <div class="budget-list space-y-3">
+        @forelse ($occurrences as $occurrence)
+            @php($payment = $occurrence->payment)
+            <div class="budget-item border rounded">
+                <div class="budget-content w-full">
+                    <div class="budget-title flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="font-semibold">{{ $payment->name }}</span>
+                            <span class="text-xs px-2 py-0.5 rounded {{ $payment->direction === 'incoming' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
+                                {{ ucfirst($payment->direction) }}
+                            </span>
+                            @if($payment->repeatable)
+                                <span class="text-xs px-2 py-0.5 rounded bg-indigo-100 text-indigo-700">{{ ucfirst($payment->frequency ?? 'repeat') }}</span>
+                            @endif
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="font-semibold {{ $payment->direction === 'incoming' ? 'text-green-700' : 'text-red-700' }}">
+                                {{ formatBudgetAmount($payment->amount) }}
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <button type="button" data-edit="{{ $payment->id }}" class="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200">Edit</button>
+                                @if($occurrence->status !== 'paid')
+                                <form action="{{ route('budget.occurrences.mark-paid', $occurrence) }}" method="POST" onsubmit="return confirm('Mark this occurrence as paid?')">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button type="submit" class="text-xs px-2 py-1 rounded bg-green-100 text-green-700 hover:bg-green-200">Mark Paid</button>
+                                </form>
+                                @endif
+                                <form action="{{ route('budget.payments.destroy', $payment) }}" method="POST" onsubmit="return confirm('Delete this payment? This removes all its occurrences.')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-xs px-2 py-1 rounded bg-red-100 text-red-700 hover:bg-red-200">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="budget-description flex items-center gap-3 mt-1">
+                        <span class="text-gray-600">{{ \Illuminate\Support\Carbon::parse($occurrence->date)->format('D, M j, Y') }}</span>
+                        <span class="text-xs px-2 py-0.5 rounded {{ $occurrence->status === 'paid' ? 'bg-green-50 text-green-700' : ($occurrence->status === 'failed' ? 'bg-red-50 text-red-700' : 'bg-gray-100 text-gray-700') }}">
+                            {{ ucfirst($occurrence->status) }}
+                        </span>
+                    </div>
+                    <!-- Inline Edit Panel (used as template for modal) -->
+                    <div id="edit-panel-{{ $payment->id }}" class="mt-3 hidden">
+                        <form action="{{ route('budget.payments.update', $payment) }}" method="POST" class="grid grid-cols-1 md:grid-cols-5 gap-3">
+                            @csrf
+                            @method('PATCH')
+                            <div>
+                                <label for="date-{{ $payment->id }}" class="block text-xs font-medium mb-1">Start Date</label>
+                                <input id="date-{{ $payment->id }}" name="date" type="date" value="{{ old('date', \Illuminate\Support\Carbon::parse($payment->date)->toDateString()) }}" class="w-full border rounded px-2 py-1">
+                            </div>
+                            <div>
+                                <label for="amount-{{ $payment->id }}" class="block text-xs font-medium mb-1">Amount</label>
+                                <input id="amount-{{ $payment->id }}" name="amount" type="number" step="0.01" value="{{ old('amount', $payment->amount) }}" class="w-full border rounded px-2 py-1">
+                            </div>
+                            <div>
+                                <label for="name-{{ $payment->id }}" class="block text-xs font-medium mb-1">Name</label>
+                                <input id="name-{{ $payment->id }}" name="name" type="text" value="{{ old('name', $payment->name) }}" class="w-full border rounded px-2 py-1">
+                            </div>
+                            <div>
+                                <label for="status-{{ $payment->id }}" class="block text-xs font-medium mb-1">Status</label>
+                                <select id="status-{{ $payment->id }}" name="status" class="w-full border rounded px-2 py-1">
+                                    <option value="pending" {{ $payment->status==='pending' ? 'selected' : '' }}>pending</option>
+                                    <option value="paid" {{ $payment->status==='paid' ? 'selected' : '' }}>paid</option>
+                                    <option value="failed" {{ $payment->status==='failed' ? 'selected' : '' }}>failed</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="direction-{{ $payment->id }}" class="block text-xs font-medium mb-1">Direction</label>
+                                <select id="direction-{{ $payment->id }}" name="direction" class="w-full border rounded px-2 py-1">
+                                    <option value="outgoing" {{ $payment->direction==='outgoing' ? 'selected' : '' }}>outgoing</option>
+                                    <option value="incoming" {{ $payment->direction==='incoming' ? 'selected' : '' }}>incoming</option>
+                                </select>
+                            </div>
+                            <div class="md:col-span-5 grid grid-cols-1 md:grid-cols-5 gap-3 items-center">
+                                <div>
+                                    <label class="inline-flex items-start gap-2">
+                                        <input type="checkbox" name="repeatable" value="1" data-repeatable class="text-primary-600" {{ $payment->repeatable ? 'checked' : '' }}>
+                                        <span class="text-sm">Repeatable</span>
+                                    </label>
+                                </div>
+                                <div data-repeat-fields class="{{ $payment->repeatable ? '' : 'opacity-50' }}">
+                                    <label for="frequency-{{ $payment->id }}" class="block text-xs font-medium mb-1">Frequency</label>
+                                    <select id="frequency-{{ $payment->id }}" name="frequency" class="w-full border rounded px-2 py-1" {{ $payment->repeatable ? '' : 'disabled' }}>
+                                        <option value="">-- select --</option>
+                                        <option value="weekly" {{ ($payment->frequency==='weekly') ? 'selected' : '' }}>weekly</option>
+                                        <option value="monthly" {{ ($payment->frequency==='monthly') ? 'selected' : '' }}>monthly</option>
+                                        <option value="yearly" {{ ($payment->frequency==='yearly') ? 'selected' : '' }}>yearly</option>
+                                    </select>
+                                </div>
+                                <div data-repeat-fields class="{{ $payment->repeatable ? '' : 'opacity-50' }}">
+                                    <label for="repeat_end_date-{{ $payment->id }}" class="block text-xs font-medium mb-1">Repeat Ends</label>
+                                    <input id="repeat_end_date-{{ $payment->id }}" name="repeat_end_date" type="date" value="{{ old('repeat_end_date', optional($payment->repeat_end_date)->toDateString()) }}" class="w-full border rounded px-2 py-1" {{ $payment->repeatable ? '' : 'disabled' }}>
+                                </div>
+                            </div>
+                            <div class="md:col-span-5 flex justify-end gap-2">
+                                <button type="button" data-cancel-edit="{{ $payment->id }}" class="px-3 py-1 rounded text-sm bg-gray-100 hover:bg-gray-200">Cancel</button>
+                                <button type="submit" class="px-3 py-1 rounded text-sm bg-primary-600 text-white hover:bg-primary-700">Save</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        @empty
+            <div class="text-sm text-gray-500">No payments in this pay period.</div>
+        @endforelse
+    </div>
+
+    <!-- Edit Payment Modal -->
+    <div id="editPaymentModal" class="hidden fixed inset-0 modal-background flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg w-full max-w-3xl p-6" id="editPaymentFormContainer"></div>
+    </div>
+
+    @push('scripts')
+    <script>
+        (function(){
+            const toggleBtn = document.getElementById('add-payment-toggle');
+            const panel = document.getElementById('add-payment-panel');
+            if (!toggleBtn || !panel) return;
+
+            toggleBtn.addEventListener('click', function() {
+                panel.classList.toggle('hidden');
+            });
+
+            const repeatable = document.getElementById('repeatable');
+            const repeatFields = document.getElementById('repeat-fields');
+            if (repeatable && repeatFields) {
+                const controls = repeatFields.querySelectorAll('select, input');
+                const applyRepeat = () => {
+                    const enabled = repeatable.checked;
+                    repeatFields.classList.toggle('opacity-50', !enabled);
+                    controls.forEach(el => el.disabled = !enabled);
+                };
+                repeatable.addEventListener('change', applyRepeat);
+                applyRepeat();
+            }
+            const addClose = document.getElementById('add-payment-close');
+            addClose && addClose.addEventListener('click', ()=> panel.classList.add('hidden'));
+        })();
+        (function(){
+            const toast = document.getElementById('toast');
+            if (!toast) return;
+            const close = document.getElementById('toast-close');
+            const hide = ()=> toast.remove();
+            close && close.addEventListener('click', hide);
+            setTimeout(hide, 3500);
+        })();
+        // Inline edit toggles
+        (function(){
+            const modal = document.getElementById('editPaymentModal');
+            const container = document.getElementById('editPaymentFormContainer');
+            function openEdit(paymentId){
+                const tmpl = document.getElementById(`edit-panel-${paymentId}`);
+                if (!tmpl) return;
+                container.innerHTML = tmpl.innerHTML;
+                // Wire cancel in injected form
+                const cancelBtn = container.querySelector('[data-cancel-edit]');
+                cancelBtn && cancelBtn.addEventListener('click', ()=> modal.classList.add('hidden'));
+                // Wire repeatable toggle within injected form
+                const repeatableEl = container.querySelector('[data-repeatable]');
+                const repeatFieldsEls = container.querySelectorAll('[data-repeat-fields]');
+                if (repeatableEl && repeatFieldsEls.length){
+                    const applyRepeatState = ()=> {
+                        const enabled = repeatableEl.checked;
+                        repeatFieldsEls.forEach(group => {
+                            group.classList.toggle('opacity-50', !enabled);
+                            group.querySelectorAll('select, input').forEach(el => el.disabled = !enabled);
+                        });
+                    };
+                    repeatableEl.addEventListener('change', applyRepeatState);
+                    applyRepeatState();
+                }
+                modal.classList.remove('hidden');
+            }
+            // Delegate edit buttons
+            document.addEventListener('click', function(e){
+                const btn = e.target.closest('[data-edit]');
+                if (btn){
+                    e.preventDefault();
+                    openEdit(btn.getAttribute('data-edit'));
+                }
+                if (e.target === modal){ modal.classList.add('hidden'); }
+            });
+            // Escape closes overlays
+            document.addEventListener('keydown', function(e){
+                if (e.key === 'Escape'){
+                    modal.classList.add('hidden');
+                    const panel = document.getElementById('add-payment-panel');
+                    panel && panel.classList.add('hidden');
+                }
+        });
+        document.querySelectorAll('[data-cancel-edit]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const id = btn.getAttribute('data-cancel-edit');
+                const panel = document.getElementById(`edit-panel-${id}`);
+                if (panel) panel.classList.add('hidden');
+            });
+        });
+    })();
 </script>
 @endpush
 @endsection

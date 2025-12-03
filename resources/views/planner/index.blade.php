@@ -14,7 +14,6 @@
         justify-content: space-between;
         align-items: center;
         margin: 1rem auto;
-        max-width: 400px;
     }
     
     .date-navigation {
@@ -106,7 +105,7 @@
                     <x-bladewind::icon name="arrow-left" class="size-4" />
                 </a>
                 <span class="date-display">
-                    {{ $date->format('F j, Y') }}
+                    {{ $date->format('j M Y') }}
                 </span>
                 <a href="{{ route('planner.index', ['date' => $nextDate]) }}" style="width: 30px; height: 28px;" 
                     class="px-2 bg-gray-100 rounded hover:bg-gray-200">
@@ -116,7 +115,7 @@
 
             <!-- Add Todo Form Toggle Button -->
             <button type="button" onclick="toggleAddForm()" 
-                    style="width: 60px;" class="px-3 py-1 rounded text-sm bg-primary-100 text-primary-600 hover:bg-primary-200">
+                    style="width: 60px;" class="px-3 py-1 rounded text-sm bg-accent text-white hover:opacity-90">
                 Add
             </button>
     </div>
@@ -392,7 +391,7 @@
 </div>
 
 <!-- Edit Todo Modal -->
-<div id="editTodoModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+<div id="editTodoModal" class="hidden fixed inset-0 modal-background flex items-center justify-center p-4">
     <div class="bg-white rounded-lg w-full max-w-md p-6" id="editTodoFormContainer">
         <!-- Will be populated by JavaScript -->
     </div>
