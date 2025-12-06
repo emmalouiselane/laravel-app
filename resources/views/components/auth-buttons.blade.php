@@ -53,7 +53,7 @@
         </x-bladewind::button>
         
         <!-- Mobile: Icon only -->
-        <form method="POST" action="{{ route('dashboard') }}" class="auth-mobile-only">
+        <form method="GET" action="{{ route('dashboard') }}" class="auth-mobile-only">
             @csrf
             <x-bladewind::button 
                 type="secondary"
@@ -84,7 +84,7 @@
         </x-bladewind::button>
         
         <!-- Mobile: Icon only -->
-        <form method="POST" action="{{ route('account') }}" class="auth-mobile-only">
+        <form method="GET" action="{{ route('account') }}" class="auth-mobile-only">
             @csrf
             <x-bladewind::button 
                 type="secondary"
