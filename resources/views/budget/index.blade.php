@@ -187,12 +187,12 @@
                     <input id="date" name="date" type="date" value="{{ old('date', now()->toDateString()) }}" class="border w-full rounded px-2 py-1" required>
                 </div>
                 <div>
-                    <label for="amount" class="block text-sm font-medium mb-1">Amount</label>
-                    <input id="amount" name="amount" type="number" step="0.01" value="{{ old('amount') }}" class="border w-full rounded px-2 py-1" placeholder="0.00" required>
-                </div>
-                <div>
                     <label for="name" class="block text-sm font-medium mb-1">Name</label>
                     <input id="name" name="name" type="text" value="{{ old('name') }}" class="border w-full rounded px-2 py-1" placeholder="e.g. Rent, Salary" required>
+                </div>
+                <div>
+                    <label for="amount" class="block text-sm font-medium mb-1">Amount</label>
+                    <input id="amount" name="amount" type="number" step="0.01" value="{{ old('amount') }}" class="border w-full rounded px-2 py-1" placeholder="0.00" required>
                 </div>
                 <div>
                     <label for="direction" class="block text-sm font-medium mb-1">Direction</label>
@@ -346,12 +346,12 @@
                                     <input id="date-{{ $payment->id }}" name="date" type="date" value="{{ old('date', \Illuminate\Support\Carbon::parse($payment->date)->toDateString()) }}" class="w-full border rounded px-2 py-1">
                                 </div>
                                 <div>
-                                    <label for="amount-{{ $payment->id }}" class="block text-xs font-medium mb-1">Amount</label>
-                                    <input id="amount-{{ $payment->id }}" name="amount" type="number" step="0.01" value="{{ old('amount', $payment->amount) }}" class="w-full border rounded px-2 py-1">
-                                </div>
-                                <div>
                                     <label for="name-{{ $payment->id }}" class="block text-xs font-medium mb-1">Name</label>
                                     <input id="name-{{ $payment->id }}" name="name" type="text" value="{{ old('name', $payment->name) }}" class="w-full border rounded px-2 py-1">
+                                </div>
+                                <div>
+                                    <label for="amount-{{ $payment->id }}" class="block text-xs font-medium mb-1">Amount</label>
+                                    <input id="amount-{{ $payment->id }}" name="amount" type="number" step="0.01" value="{{ old('amount', $payment->amount) }}" class="w-full border rounded px-2 py-1">
                                 </div>
                                 <div>
                                     <label for="direction-{{ $payment->id }}" class="block text-xs font-medium mb-1">Direction</label>
