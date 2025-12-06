@@ -24,7 +24,7 @@
     <div class="login-container">
         <x-bladewind::card class="max-w-md w-full">
             <div class="text-center mb-6">
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">Welcome back!</h1>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-500 mb-1">Welcome back!</h1>
             </div>
 
             <div class="text-center mb-4">
