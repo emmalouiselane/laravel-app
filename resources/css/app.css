@@ -70,6 +70,24 @@
     --color-gray-950: #030712;
 }
 
+/* Override focus ring styles */
+*:focus,
+.bw-button:focus,
+.bw-input:focus,
+.bw-select:focus,
+.bw-dropdown:focus,
+.bw-checkbox:focus,
+.bw-radio:focus,
+button:focus,
+input:focus,
+select:focus,
+textarea:focus {
+    outline: 1px solid var(--color-accent-300) !important;
+    outline-offset: 1px !important;
+    box-shadow: 0 0 0 1px var(--color-accent-300) !important;
+    border-color: var(--color-accent-300) !important;
+}
+
 /* Custom Styling */
 html, body {
     height: 100%;
