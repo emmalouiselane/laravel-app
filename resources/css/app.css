@@ -8,22 +8,66 @@
 
 @theme {
     --font-sans: 'Edu NSW ACT Cursive', cursive;
-    /* Primary palette based on #00bfa5 */
-    --color-primary-50:  #e6fffb;
-    --color-primary-100: #bffaf2;
-    --color-primary-200: #99f2e6;
-    --color-primary-300: #66e6d6;
-    --color-primary-400: #33d9c6;
-    --color-primary-500: #00bfa5; /* base */
-    --color-primary-600: #00a891;
-    --color-primary-700: #008c79;
-    --color-primary-800: #007263;
-    --color-primary-900: #00564a;
+    --color-primary-50: #f0fdfa;
+    --color-primary-100: #ccfbf1;
+    --color-primary-200: #99f6e4;
+    --color-primary-300: #5eead4;
+    --color-primary-400: #2dd4bf;
+    --color-primary-500: #14b8a6;
+    --color-primary-600: #0d9488;
+    --color-primary-700: #0f766e;
+    --color-primary-800: #115e59;
+    --color-primary-900: #134e4a;
+    --color-primary-950: #042f2e;
 
-    /* Harmonized secondary (deep teal) and Ko-fi-like accent red */
-    --color-secondary: #007a6c; /* deep teal to complement #00bfa5 */
-    --color-accent:    #ff5e5b; /* Ko-fi red */
-    --color-dark:      #1b1b18; /* Dark neutral */
+    --color-secondary-50: #f0fdfa;
+    --color-secondary-100: #ccfbf1;
+    --color-secondary-200: #99f6e4;
+    --color-secondary-300: #5eead4;
+    --color-secondary-400: #2dd4bf;
+    --color-secondary-500: #14b8a6;
+    --color-secondary-600: #0d9488;
+    --color-secondary-700: #0f766e;
+    --color-secondary-800: #115e59;
+    --color-secondary-900: #134e4a;
+    --color-secondary-950: #042f2e;
+
+    --color-accent-50: #fef2f2;
+    --color-accent-100: #fee2e2;
+    --color-accent-200: #fecaca;
+    --color-accent-300: #fca5a5;
+    --color-accent-400: #f87171;
+    --color-accent-500: #ef4444;
+    --color-accent-600: #dc2626;
+    --color-accent-700: #b91c1c;
+    --color-accent-800: #991b1b;
+    --color-accent-900: #7f1d1d;
+    --color-accent-950: #450a0a;
+
+    --color-dark-50: #f9fafb;
+    --color-dark-100: #f3f4f6;
+    --color-dark-200: #e5e7eb;
+    --color-dark-300: #d1d5db;
+    --color-dark-400: #9ca3af;
+    --color-dark-500: #6b7280;
+    --color-dark-600: #4b5563;
+    --color-dark-700: #374151;
+    --color-dark-800: #1b1b18;
+    --color-dark-900: #111827;
+    --color-dark-950: #030712;
+
+    /* Include standard Tailwind gray palette */
+    --color-gray-50: #f9fafb;
+    --color-gray-100: #f3f4f6;
+    --color-gray-200: #e5e7eb;
+    --color-gray-300: #d1d5db;
+    --color-gray-400: #9ca3af;
+    --color-gray-500: #6b7280;
+    --color-gray-600: #4b5563;
+    --color-gray-700: #374151;
+    --color-gray-800: #1f2937;
+    --color-gray-900: #111827;
+    --color-gray-950: #030712;
 }
 
 /* Custom Styling */
@@ -75,8 +119,8 @@ footer {
 :root .text-primary-900 { color: var(--color-primary-900) !important; }
 
 /* Accent overrides */
-:root .bg-accent  { background-color: var(--color-accent) !important; }
-:root .text-accent { color:            var(--color-accent) !important; }
+:root .bg-accent  { background-color: var(--color-accent-500) !important; }
+:root .text-accent { color:            var(--color-accent-500) !important; }
 
 /* Base: make native form controls use primary as currentColor/accent */
 @layer base {

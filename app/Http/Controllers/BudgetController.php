@@ -228,7 +228,6 @@ class BudgetController extends Controller
             'date' => 'sometimes|required|date',
             'amount' => 'sometimes|required|numeric',
             'name' => 'sometimes|required|string|max:255',
-            'status' => 'sometimes|required|string|in:pending,paid,failed',
             'direction' => 'sometimes|required|in:incoming,outgoing',
             'repeatable' => 'nullable|boolean',
             'frequency' => 'nullable|in:weekly,monthly,yearly',
@@ -269,6 +268,30 @@ class BudgetController extends Controller
         }
         $occurrence->update(['status' => 'paid']);
         return redirect()->back()->with('success', 'Occurrence marked as paid.');
+    }
+
+    /**
+     * Mark a specific occurrence as failed
+     */
+    public function markOccurrenceFailed(PaymentOccurrence $occurrence)
+    {
+        if ($occurrence->payment->user_id !== Auth::id()) {
+            abort(403);
+        }
+        $occurrence->update(['status' => 'failed']);
+        return redirect()->back()->with('success', 'Occurrence marked as failed.');
+    }
+
+    /**
+     * Mark a specific occurrence as unpaid (pending)
+     */
+    public function markOccurrenceUnpaid(PaymentOccurrence $occurrence)
+    {
+        if ($occurrence->payment->user_id !== Auth::id()) {
+            abort(403);
+        }
+        $occurrence->update(['status' => 'pending']);
+        return redirect()->back()->with('success', 'Occurrence marked as unpaid.');
     }
 
     /**
@@ -363,7 +386,6 @@ class BudgetController extends Controller
             'date' => 'required|date',
             'amount' => 'required|numeric',
             'name' => 'required|string|max:255',
-            'status' => 'required|string|in:pending,paid,failed',
             'direction' => 'required|in:incoming,outgoing',
             'repeatable' => 'nullable|boolean',
             'frequency' => 'nullable|in:weekly,monthly,yearly',
@@ -375,7 +397,6 @@ class BudgetController extends Controller
             'date' => $validated['date'],
             'amount' => $validated['amount'],
             'name' => $validated['name'],
-            'status' => $validated['status'],
             'direction' => $validated['direction'],
             'repeatable' => (bool)($validated['repeatable'] ?? false),
             'frequency' => $validated['frequency'] ?? null,
