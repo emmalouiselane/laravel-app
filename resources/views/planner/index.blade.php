@@ -91,7 +91,7 @@
         />
     </header>
     
-    <div class="planner-header grid grid-cols-3">
+    <div class="planner-header grid grid-cols-4">
         <a href="{{ route('planner.index') }}" 
             style="width: 60px;"
             class="px-3 py-1 rounded text-sm {{ $date->toDateString() === $today ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-primary-100 text-primary-600 hover:bg-primary-200' }}"
@@ -99,7 +99,7 @@
             Today
         </a>
 
-        <div class="date-navigation flex items-center">
+        <div class="date-navigation flex items-center col-span-2">
             <a href="{{ route('planner.index', ['date' => $previousDate]) }}" style="width: 30px; height: 28px;" 
                 class="px-2 bg-gray-100 rounded hover:bg-gray-200">
                 <x-bladewind::icon name="arrow-left" class="size-4" />

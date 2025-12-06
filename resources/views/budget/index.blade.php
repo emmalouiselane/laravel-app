@@ -104,7 +104,7 @@
         </div>
     </header>
     
-    <div class="budget-header grid grid-cols-3">
+    <div class="budget-header grid grid-cols-4">
         <!-- Current -->
         <div class="flex items-center">
             <a href="{{ route('budget.index') }}" 
@@ -115,7 +115,7 @@
         </div>
 
         <!-- Date Navigation (center) -->
-        <div class="date-navigation flex items-center">
+        <div class="date-navigation flex items-center col-span-2">
             <a href="{{ route('budget.index', ['date' => $payPeriod['previous_period']]) }}" 
                 style="width: 30px; height: 28px;" 
                 class="px-2 bg-gray-100 rounded hover:bg-gray-200 flex items-center justify-center">
@@ -135,16 +135,9 @@
 
         <!-- Add (right) -->
         <div class="flex justify-end items-center gap-2">
-            <button type="button" id="management-mode-toggle"
-                class="px-3 py-1 rounded text-sm bg-accent text-white hover:opacity-90">
-                Manage
-            </button>
-            <div id="add-payment-toggle" class="hidden">
-                <button type="button" class="px-3 py-1 rounded text-sm bg-accent text-white hover:opacity-90">
-                    Add Payment
-                </button>
-            </div>
-           
+            <a disabled class="px-3 py-1 rounded text-sm bg-gray-100 text-gray-400 cursor-not-allowed">
+                Charts
+            </a>
         </div>
     </div>
 
@@ -170,7 +163,7 @@
 
     <div id="add-payment-panel" class="{{ $errors->any() ? '' : 'hidden' }} absolute z-10 left-4 right-4 bg-white rounded shadow p-4">
         <div class="flex justify-between items-center mb-3">
-            <h2 class="font-semibold">Add Payment</h2>
+            <h2 class="font-semibold">Add</h2>
             <button type="button" id="add-payment-close" class="text-gray-400 hover:text-gray-600" aria-label="Close">
                 <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -229,7 +222,7 @@
     </div>
 
     <!-- Totals Summary -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
         @php
             function formatBudgetAmount($amount, $direction = null) {
                 if ($direction === 'incoming') {
@@ -270,37 +263,54 @@
 
     <!-- Occurrences List -->
     <div class="budget-list space-y-3">
+        <div class="flex justify-end items-center gap-2">
+            <div id="add-payment-toggle" class="flex justify-end items-center gap-2 hidden">
+                <button type="button" class="px-3 py-1 rounded text-sm bg-primary-600 text-white hover:opacity-90">
+                    Add Payment
+                </button>
+            </div>
+            <button type="button" id="management-mode-toggle"
+                class="px-3 py-1 rounded text-sm bg-gray-400 text-white hover:opacity-90">
+                Manage Payments
+            </button>      
+        </div>
+            
+
         @forelse ($occurrences as $occurrence)
             @php($payment = $occurrence->payment)
             <div class="budget-item border rounded" data-management-mode="false">
                 <div class="budget-content w-full">
-                    <div class="grid grid-cols-3 gap-3">
-                        <div class="col-span-2">
-                            <div class="flex items-center gap-2">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <div class="flex gap-2 mb-2">
                                 <span class="font-semibold">{{ $payment->name }}</span>
-                                <span class="text-xs px-2 py-0.5 rounded {{ $payment->direction === 'incoming' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
-                                    {{ ucfirst($payment->direction) }}
-                                </span>
-                                @if($payment->repeatable)
-                                    <span class="text-xs px-2 py-0.5 rounded bg-indigo-100 text-indigo-700">{{ ucfirst($payment->frequency ?? 'repeat') }}</span>
-                                @endif
-                            </div>
-                            
-                            <div class="flex items-center gap-2">
-                                <span class="text-gray-600 mt-1">{{ \Illuminate\Support\Carbon::parse($occurrence->date)->format('D, M j, Y') }}</span>
-                                <div class="status-controls flex items-center gap-1 mt-1">
+                                
+                                <div class="status-controls flex items-center gap-1">
                                     <span class="text-xs px-2 py-0.5 rounded {{ $occurrence->status === 'paid' ? 'bg-green-50 text-green-700' : ($occurrence->status === 'failed' ? 'bg-red-50 text-red-700' : 'bg-gray-100 text-gray-700') }}">
                                         {{ ucfirst($occurrence->status) }}
                                     </span>
                                 </div>
                             </div>
+                            
+                            <div class="flex items-center gap-2">
+                                @if($payment->repeatable)
+                                    <span class="text-xs px-2 py-0.5 rounded bg-indigo-100 text-indigo-700 mt-1">{{ ucfirst($payment->frequency ?? 'repeat') }}</span>
+                                @endif
+                                <span class="text-gray-600 mt-1">{{ \Illuminate\Support\Carbon::parse($occurrence->date)->format('D, M j') }}</span>
+                            </div>
                         </div>
                         <div class="justify-self-end">
-                            <div class="justify-self-end font-semibold {{ $payment->direction === 'incoming' ? 'text-green-700' : 'text-red-700' }}">
-                                {{ formatBudgetAmount($payment->amount, $payment->direction) }}
+                            <div class="flex justify-self-end gap-3 mb-2">
+                                <div class=" font-semibold {{ $payment->direction === 'incoming' ? 'text-green-700' : 'text-red-700' }}">
+                                    {{ formatBudgetAmount($payment->amount, $payment->direction) }}
+                                </div>
+                                
+                                <span class="text-xs px-2 py-0.5 rounded {{ $payment->direction === 'incoming' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
+                                    {{ ucfirst($payment->direction) }}
+                                </span>
                             </div>
                         
-                            <div class="status-buttons flex items-center gap-1">
+                            <div class="status-buttons flex items-center justify-self-end gap-1">
                                 @if($occurrence->status !== 'paid')
                                 <form action="{{ route('budget.occurrences.mark-paid', $occurrence) }}" method="POST" onsubmit="return confirm('Mark this occurrence as paid?')">
                                     @csrf
@@ -324,7 +334,7 @@
                                 @endif
                             </div>
                             
-                            <div class="management-controls hidden flex items-center gap-1">
+                            <div class="management-controls hidden flex items-center justify-self-end gap-1">
                                 <button type="button" data-edit="{{ $payment->id }}" class="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200">Edit</button>
                                 <form action="{{ route('budget.payments.destroy', $payment) }}" method="POST" onsubmit="return confirm('Delete this payment? This removes all its occurrences.')">
                                     @csrf
@@ -414,10 +424,7 @@
             let managementMode = localStorage.getItem('managementMode') === 'true';
             
             function updateManagementUI() {
-                managementToggle.textContent = managementMode ? 'Done' : 'Manage';
-                managementToggle.className = managementMode ? 
-                    'px-3 py-1 rounded text-sm bg-primary-600 text-white hover:bg-primary-700' :
-                    'px-3 py-1 rounded text-sm bg-accent text-white hover:opacity-90';
+                managementToggle.textContent = managementMode ? 'Done?' : 'Manage Payments';
                 
                 // Toggle Add button visibility
                 const addBtn = document.getElementById('add-payment-toggle');
