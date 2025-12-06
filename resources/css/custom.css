@@ -1,33 +1,23 @@
 /* Custom CSS to ensure Edu NSW ACT Cursive is applied everywhere */
-* {
-    font-family: "Poiret One", sans-serif !important;
+body, div, span, p, h1, h2, h3, h4, h5, h6, label, td, th {
+    font-family: var(--font-sans) !important;
 }
 
 /* Override Bladewind specific classes */
 .bw-input,
-.bw-button,
 .bw-dropdown,
 .bw-select,
 .bw-checkbox,
 .bw-radio,
-.bw-toggle,
-.bw-modal,
-.bw-tab,
-.bw-accordion,
-.bw-alert,
-.bw-badge,
-.bw-card,
-.bw-table,
 .bw-pagination,
 .bw-progress,
 .bw-tooltip {
-    font-family: "Poiret One", sans-serif !important;
+    font-family: var(--font-sans) !important;
 }
 
 /* Ensure form elements use the correct font */
 input,
 select,
-textarea,
-button {
-    font-family: "Poiret One", sans-serif !important;
+textarea {
+    font-family: var(--font-sans) !important;
 }

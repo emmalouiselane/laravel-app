@@ -7,7 +7,7 @@
 @source '../**/*.js';
 
 @theme {
-    --font-sans: 'Edu NSW ACT Cursive', cursive;
+    --font-sans: 'Nunito', sans-serif;
     --color-primary-50: #f0fdfa;
     --color-primary-100: #ccfbf1;
     --color-primary-200: #99f6e4;

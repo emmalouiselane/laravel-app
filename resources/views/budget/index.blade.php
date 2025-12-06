@@ -295,6 +295,8 @@
                             <div class="flex items-center gap-2">
                                 @if($payment->repeatable)
                                     <span class="text-xs px-2 py-0.5 rounded bg-indigo-100 text-indigo-700 mt-1">{{ ucfirst($payment->frequency ?? 'repeat') }}</span>
+                                @else
+                                    <span class="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-700 mt-1">One-off</span>
                                 @endif
                                 <span class="text-gray-600 mt-1">{{ \Illuminate\Support\Carbon::parse($occurrence->date)->format('D, M j') }}</span>
                             </div>

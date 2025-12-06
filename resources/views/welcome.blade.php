@@ -15,6 +15,7 @@
         .google-icon {
             width: 18px;
             height: 18px;
+            margin-top: 3px;
             margin-right: 8px;
         }
     </style>
