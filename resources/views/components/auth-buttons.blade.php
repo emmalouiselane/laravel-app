@@ -5,6 +5,20 @@
         width: 30px;
         padding: 0;
     }
+    .auth-desktop-only {
+        display: none !important;
+    }
+    .auth-mobile-only {
+        display: flex !important;
+    }
+    @media (min-width: 768px) {
+        .auth-desktop-only {
+            display: flex !important;
+        }
+        .auth-mobile-only {
+            display: none !important;
+        }
+    }
 </style>
 @endpush
 
@@ -30,23 +44,27 @@
             type="primary"
             size="small"
             uppercasing="false"
-            button_text_css="text-xs hidden md:inline"
+            button_text_css="text-xs auth-desktop-only"
             icon="chart-bar-square"
-            class="hidden md:flex"
+            class="auth-desktop-only"
+            title="Dashboard"
         >
             {{ __('Dashboard') }}
         </x-bladewind::button>
         
         <!-- Mobile: Icon only -->
-        <x-bladewind::button 
-            tag="a"
-            href="{{ route('dashboard') }}"
-            type="primary"
-            size="small"
-            icon="chart-bar-square"
-            class="md:hidden mobile-auth-buttons"
-            has_shadow="false"
-        />
+        <form method="POST" action="{{ route('dashboard') }}" class="auth-mobile-only">
+            @csrf
+            <x-bladewind::button 
+                type="secondary"
+                size="small"
+                icon="chart-bar-square"
+                class="mobile-auth-buttons"
+                has_shadow="false"
+                can_submit="true"   
+                title="Dashboard"
+            />
+        </form>
     @endif
 
     @if($showAccount)
@@ -57,53 +75,57 @@
             type="primary"
             size="small"
             uppercasing="false"
-            button_text_css="text-xs hidden md:inline"
+            button_text_css="text-xs auth-desktop-only"
             icon="key"
-            class="hidden md:flex"
+            class="auth-desktop-only"
+            title="Account"
         >
             {{ __('Account') }}
         </x-bladewind::button>
         
         <!-- Mobile: Icon only -->
-        <x-bladewind::button 
-            tag="a"
-            href="{{ route('account') }}"
-            type="primary"
-            size="small"
-            icon="key"
-            class="md:hidden mobile-auth-buttons"
-            has_shadow="false"
-        />
+        <form method="POST" action="{{ route('account') }}" class="auth-mobile-only">
+            @csrf
+            <x-bladewind::button 
+                type="secondary"
+                size="small"
+                icon="key"
+                class="mobile-auth-buttons"
+                has_shadow="false"
+                can_submit="true"   
+                title="Account"
+            />
+        </form>
     @endif
 
     @if($showLogout)
         <!-- Desktop: Full text + icon -->
-        <form method="POST" action="{{ route('logout') }}" class="hidden md:block">
+        <form method="POST" action="{{ route('logout') }}" class="auth-desktop-only">
             @csrf
             <x-bladewind::button 
-                type="submit"
                 type="secondary"
                 size="small"
                 uppercasing="false"
                 button_text_css="text-xs"
                 icon="lock-closed"
                 can_submit="true"
+                title="Log Out"
             >
                 {{ __('Log Out') }}
             </x-bladewind::button>
         </form>
         
         <!-- Mobile: Icon only -->
-        <form method="POST" action="{{ route('logout') }}" class="md:hidden">
+        <form method="POST" action="{{ route('logout') }}" class="auth-mobile-only">
             @csrf
             <x-bladewind::button 
-                type="submit"
                 type="secondary"
                 size="small"
                 icon="lock-closed"
                 class="mobile-auth-buttons"
                 has_shadow="false"
-                can_submit="true"
+                can_submit="true"   
+                title="Log Out"
             />
         </form>
     @endif

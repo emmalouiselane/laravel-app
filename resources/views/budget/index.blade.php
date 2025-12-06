@@ -69,6 +69,11 @@
         margin: auto;
     }
 
+    .budget-category-color {
+        width: 15px;
+        height: 15px;
+    }
+
     .settings-button {
         width: 30px;
         height: 28px;
@@ -93,9 +98,19 @@
         <h1 class="text-2xl font-bold">Budget</h1>
 
         <div class="flex items-center gap-2">
-            <a href="{{ route('budget.settings') }}" class="settings-button bg-gray-100 text-gray-700 rounded hover:bg-gray-200 flex items-center justify-center" title="Settings">
-                <x-bladewind::icon name="cog" class="size-4" />
-            </a>
+            <form method="GET" action="{{ route('budget.settings') }}">
+                @csrf
+                <x-bladewind::button 
+                    type="secondary"
+                    size="small"
+                    icon="cog"
+                    has_shadow="false"
+                    can_submit="true"   
+                    title="Settings"
+                    class="text-gray-700"
+                    style="width: 15px; background-color: var(--color-accent-400) !important;"
+                />
+            </form>
             <x-auth-buttons 
                 :showDashboard="true"
                 :showAccount="true"
@@ -142,13 +157,11 @@
     </div>
 
     @if (session('success'))
-        <div id="toast" class="fixed right-4 top-4 z-50 bg-green-600 text-white px-4 py-3 rounded shadow flex items-start gap-3">
-            <div class="pt-0.5">
-                <x-bladewind::icon name="check-circle" class="size-5" />
-            </div>
-            <div>{{ session('success') }}</div>
-            <button type="button" id="toast-close" class="ml-2 text-white/80 hover:text-white">&times;</button>
-        </div>
+        <div class="mb-4 p-3 rounded bg-green-50 text-green-700">{{ session('success') }}</div>
+    @endif
+
+    @if (session('error'))
+        <div class="mb-4 p-3 rounded bg-red-50 text-red-700">{{ session('error') }}</div>
     @endif
 
     @if ($errors->any())
@@ -196,10 +209,23 @@
                 </div>
             </div>
             <div class="grid sm:grid-cols-1 md:grid-cols-4 gap-3">
-                <label class="inline-flex items-center gap-2">
-                    <input type="checkbox" id="repeatable" name="repeatable" value="1" class="text-primary-600" {{ old('repeatable') ? 'checked' : '' }}>
-                    <span class="text-sm">Repeatable</span>
-                </label>
+                <div>
+                    <label for="category_id" class="block text-sm font-medium mb-1">Category</label>
+                    <select id="category_id" name="category_id" class="border w-full rounded px-2 py-1">
+                        <option value="">-- None --</option>
+                        @foreach($categories as $category)
+                            <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
+                                {{ $category->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="items-center ml-0 mt-auto mb-[5px]">
+                    <label class="inline-flex items-center gap-2">
+                        <input type="checkbox" id="repeatable" name="repeatable" value="1" class="text-primary-600" {{ old('repeatable') ? 'checked' : '' }}>
+                        <span class="text-sm">Repeatable</span>
+                    </label>
+                </div>
                 <div id="repeat-fields" class="repeat-fields {{ old('repeatable') ? '' : 'opacity-50' }}">
                     <label for="frequency" class="block text-sm font-medium mb-1">Frequency</label>
                     <select id="frequency" name="frequency" class="border w-full rounded px-2 py-1" {{ old('repeatable') ? '' : 'disabled' }}>
@@ -283,8 +309,16 @@
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <div class="flex gap-2 mb-2">
+                                @if ($payment->category)
+                                   @if($payment->category->icon)
+                                       <div class="text-gray-500" title="{{ $payment->category->name }}" style="color: {{ $payment->category->color }}">
+                                           <x-bladewind::icon name="{{ $payment->category->icon }}" class="h-4 w-4" />
+                                       </div>
+                                   @else
+                                       <div class="budget-category-color rounded-md mt-1" style="background-color: {{ $payment->category->color }};" title="{{ $payment->category->name }}"></div>
+                                   @endif
+                                @endif
                                 <span class="font-semibold">{{ $payment->name }}</span>
-                                
                                 <div class="status-controls flex items-center gap-1">
                                     <span class="text-xs px-2 py-0.5 rounded {{ $occurrence->status === 'paid' ? 'bg-green-50 text-green-700' : ($occurrence->status === 'failed' ? 'bg-red-50 text-red-700' : 'bg-gray-100 text-gray-700') }}">
                                         {{ ucfirst($occurrence->status) }}
@@ -352,7 +386,7 @@
                         <form action="{{ route('budget.payments.update', $payment) }}" method="POST">
                             @csrf
                             @method('PATCH')
-                            <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3">
                                 <div>
                                     <label for="date-{{ $payment->id }}" class="block text-xs font-medium mb-1">Start Date</label>
                                     <input id="date-{{ $payment->id }}" name="date" type="date" value="{{ old('date', \Illuminate\Support\Carbon::parse($payment->date)->toDateString()) }}" class="w-full border rounded px-2 py-1">
@@ -374,10 +408,23 @@
                                 </div>
                             </div>                            
                             <div class="md:col-span-4 grid grid-cols-1 md:grid-cols-4 gap-3 items-center">
-                                <label class="inline-flex items-center gap-2">
-                                    <input type="checkbox" name="repeatable" value="1" data-repeatable class="text-primary-600" {{ $payment->repeatable ? 'checked' : '' }}>
-                                    <span class="text-sm">Repeatable</span>
-                                </label>
+                                <div>
+                                    <label for="category_id-{{ $payment->id }}" class="block text-xs font-medium mb-1">Category</label>
+                                    <select id="category_id-{{ $payment->id }}" name="category_id" class="w-full border rounded px-2 py-1">
+                                        <option value="">-- None --</option>
+                                        @foreach($categories as $category)
+                                            <option value="{{ $category->id }}" {{ (old('category_id') ?? $payment->category_id) == $category->id ? 'selected' : '' }}>
+                                                {{ $category->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="items-center ml-0 mt-auto mb-[5px]">
+                                    <label class="inline-flex items-center gap-2">
+                                        <input type="checkbox" name="repeatable" value="1" data-repeatable class="text-primary-600" {{ $payment->repeatable ? 'checked' : '' }}>
+                                        <span class="text-sm">Repeatable</span>
+                                    </label>
+                                </div>                                
                                 <div data-repeat-fields class="{{ $payment->repeatable ? '' : 'opacity-50' }}">
                                     <label for="frequency-{{ $payment->id }}" class="block text-xs font-medium mb-1">Frequency</label>
                                     <select id="frequency-{{ $payment->id }}" name="frequency" class="w-full border rounded px-2 py-1" {{ $payment->repeatable ? '' : 'disabled' }}>
@@ -392,7 +439,7 @@
                                     <input id="repeat_end_date-{{ $payment->id }}" name="repeat_end_date" type="date" value="{{ old('repeat_end_date', optional($payment->repeat_end_date)->toDateString()) }}" class="w-full border rounded px-2 py-1" {{ $payment->repeatable ? '' : 'disabled' }}>
                                 </div>
                             </div>
-                            <div class="flex items-bottom justify-end gap-2">
+                            <div class="flex items-bottom justify-end gap-2 mt-3">
                                 <button type="button" data-cancel-edit="{{ $payment->id }}" class="px-3 py-1 rounded text-sm bg-gray-100 hover:bg-gray-200">Cancel</button>
                                 <button type="submit" class="px-3 py-1 rounded text-sm bg-primary-600 text-white hover:bg-primary-700">Save</button>
                             </div>

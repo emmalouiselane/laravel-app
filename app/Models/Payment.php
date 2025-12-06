@@ -19,6 +19,7 @@ class Payment extends Model
         'repeatable',
         'frequency',
         'repeat_end_date',
+        'category_id',
     ];
 
     protected $casts = [
@@ -31,5 +32,10 @@ class Payment extends Model
     public function occurrences()
     {
         return $this->hasMany(\App\Models\PaymentOccurrence::class);
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(PaymentCategory::class);
     }
 }

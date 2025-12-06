@@ -42,6 +42,11 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/occurrences/{occurrence}/mark-failed', [\App\Http\Controllers\BudgetController::class, 'markOccurrenceFailed'])->name('occurrences.mark-failed');
         Route::patch('/occurrences/{occurrence}/mark-unpaid', [\App\Http\Controllers\BudgetController::class, 'markOccurrenceUnpaid'])->name('occurrences.mark-unpaid');
         Route::delete('/payments/{payment}', [\App\Http\Controllers\BudgetController::class, 'destroyPayment'])->name('payments.destroy');
+        
+        // Category routes
+        Route::post('/categories', [\App\Http\Controllers\BudgetController::class, 'storeCategory'])->name('categories.store');
+        Route::patch('/categories/{category}', [\App\Http\Controllers\BudgetController::class, 'updateCategory'])->name('categories.update');
+        Route::delete('/categories/{category}', [\App\Http\Controllers\BudgetController::class, 'destroyCategory'])->name('categories.destroy');
     });
     
     // Logout route
