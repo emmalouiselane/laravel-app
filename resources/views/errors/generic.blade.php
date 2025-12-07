@@ -34,11 +34,45 @@
                 {{ $message }}
             </p>
 
-            <a class="mt-5" href="{{ url('/') }}">
-                <x-bladewind::button type="primary" size="medium">
-                    Return Home
-                </x-bladewind::button>
-            </a>
+            <div class="mt-8 flex flex-col gap-4">
+                <a href="{{ url('/') }}">
+                    <x-bladewind::button type="primary" size="medium">
+                        Return Home
+                    </x-bladewind::button>
+                </a>
+
+                @if(env('GITHUB_REPORTING_ENABLED'))
+                    <div x-data="{ open: false }">
+                        <button @click="open = !open" class="text-sm text-gray-500 hover:text-gray-700 underline">
+                            Report this issue
+                        </button>
+
+                        <div x-show="open" class="mt-4 text-left border p-4 rounded bg-gray-50">
+                            <form action="{{ route('report.issue') }}" method="POST">
+                                @csrf
+                                <input type="hidden" name="url" value="{{ request()->fullUrl() }}">
+                                @if(isset($exception))
+                                                    <input type="hidden" name="exception_context" value="{{ json_encode([
+                                        'message' => $exception->getMessage(),
+                                        'file' => $exception->getFile(),
+                                        'line' => $exception->getLine(),
+                                        'trace' => mb_substr($exception->getTraceAsString(), 0, 2000)
+                                    ]) }}">
+                                @endif
+                                <div class="mb-3">
+                                    <label class="block text-xs font-medium text-gray-700">Describe what happened:</label>
+                                    <textarea name="message" rows="3"
+                                        class="w-full text-sm border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                                        required></textarea>
+                                </div>
+                                <x-bladewind::button can_submit="true" size="small" class="w-full">
+                                    Send Report
+                                </x-bladewind::button>
+                            </form>
+                        </div>
+                    </div>
+                @endif
+            </div>
         </div>
     </div>
 @endsection

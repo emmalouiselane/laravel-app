@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Support\Facades\Log;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -10,12 +11,39 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__ . '/../routes/console.php',
         health: '/up',
     )
-    ->withMiddleware(function (Middleware $middleware): void {
-        //
-    })
     ->withExceptions(function (Exceptions $exceptions): void {
-        $exceptions->reportable(function (Throwable $e) {
-            if (env('GITHUB_REPORTING_ENABLED') && app()->environment('production')) {
+        $exceptions->reportable(function (\Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException $e) {
+            \Illuminate\Support\Facades\Log::info('GitHub Reporting: 405 Specific Handler Triggered');
+
+            if (env('GITHUB_REPORTING_ENABLED')) {
+                try {
+                    $title = 'Error: Method Not Allowed (405)';
+                    $body = "### Error Message\nMethod Not Allowed for URL: " . request()->fullUrl() . "\n\n";
+                    $body .= "### File\n" . $e->getFile() . ':' . $e->getLine() . "\n\n";
+                    $body .= "### Headers\n" . json_encode(request()->headers->all()) . "\n\n";
+
+                    $response = \Illuminate\Support\Facades\Http::withToken(env('GITHUB_TOKEN'))
+                        ->post('https://api.github.com/repos/' . env('GITHUB_REPO') . '/issues', [
+                            'title' => $title,
+                            'body' => $body,
+                            'labels' => ['bug', 'automated-report', '405']
+                        ]);
+
+                    if (!$response->successful()) {
+                        \Illuminate\Support\Facades\Log::error('GitHub Reporting API Failed: ' . $response->status());
+                    }
+                } catch (\Throwable $err) {
+                    \Illuminate\Support\Facades\Log::error('GitHub Reporting 405 Exception: ' . $err->getMessage());
+                }
+            }
+        });
+
+        $exceptions->stopIgnoring(\Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException::class);
+
+        $exceptions->report(function (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::info('GitHub Reporting: Handler triggered for ' . get_class($e));
+
+            if (env('GITHUB_REPORTING_ENABLED')) {
                 try {
                     $title = 'Error: ' . substr($e->getMessage(), 0, 100);
                     $body = "### Error Message\n" . $e->getMessage() . "\n\n";
@@ -23,15 +51,23 @@ return Application::configure(basePath: dirname(__DIR__))
                     $body .= "### URL\n" . request()->fullUrl() . "\n\n";
                     $body .= "### Stack Trace\n```\n" . substr($e->getTraceAsString(), 0, 1500) . "\n```";
 
-                    \Illuminate\Support\Facades\Http::withToken(env('GITHUB_TOKEN'))
+                    $response = \Illuminate\Support\Facades\Http::withToken(env('GITHUB_TOKEN'))
                         ->post('https://api.github.com/repos/' . env('GITHUB_REPO') . '/issues', [
                             'title' => $title,
                             'body' => $body,
                             'labels' => ['bug', 'automated-report']
                         ]);
-                } catch (Throwable $reportError) {
-                    // Fail silently to avoid infinite loops if reporting fails
+
+                    if (!$response->successful()) {
+                        \Illuminate\Support\Facades\Log::error('GitHub Reporting API Failed: ' . $response->status() . ' - ' . $response->body());
+                    } else {
+                        \Illuminate\Support\Facades\Log::info('GitHub Issue Created: ' . $response->status());
+                    }
+                } catch (\Throwable $reportError) {
+                    \Illuminate\Support\Facades\Log::error('GitHub Reporting Exception: ' . $reportError->getMessage());
                 }
+            } else {
+                \Illuminate\Support\Facades\Log::info('GitHub Reporting: Disabled in config');
             }
         });
 
@@ -41,4 +77,9 @@ return Application::configure(basePath: dirname(__DIR__))
                 return response()->view('errors.generic', ['exception' => $e], $statusCode);
             }
         });
+    })
+    ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->validateCsrfTokens(except: [
+            'report-issue',
+        ]);
     })->create();

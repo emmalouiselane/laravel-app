@@ -13,13 +13,16 @@ Route::get('/', function () {
 Route::get('/auth/google', [GoogleController::class, 'redirectToGoogle'])->name('auth.google');
 Route::get('/auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
 
+// Error Reporting
+Route::match(['get', 'post'], '/report-issue', [\App\Http\Controllers\ReportController::class, 'store'])->name('report.issue');
+
 // Protected routes
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/account', [AccountController::class, 'index'])->name('account');
     Route::patch('/account/timezone', [AccountController::class, 'updateTimezone'])->name('account.update-timezone');
     //Route::patch('/account/dark-mode', [AccountController::class, 'updateDarkMode'])->name('account.update-dark-mode');
-    
+
     // Planner routes
     Route::prefix('planner')->name('planner.')->group(function () {
         Route::get('/', [\App\Http\Controllers\PlannerController::class, 'index'])->name('index');
@@ -29,7 +32,7 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/{todo}', [\App\Http\Controllers\PlannerController::class, 'update'])->name('update');
         Route::delete('/{todo}', [\App\Http\Controllers\PlannerController::class, 'destroy'])->name('destroy');
     });
-    
+
     // Budget routes
     Route::prefix('budget')->name('budget.')->group(function () {
         Route::get('/', [\App\Http\Controllers\BudgetController::class, 'index'])->name('index');
@@ -42,13 +45,13 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/occurrences/{occurrence}/mark-failed', [\App\Http\Controllers\BudgetController::class, 'markOccurrenceFailed'])->name('occurrences.mark-failed');
         Route::patch('/occurrences/{occurrence}/mark-unpaid', [\App\Http\Controllers\BudgetController::class, 'markOccurrenceUnpaid'])->name('occurrences.mark-unpaid');
         Route::delete('/payments/{payment}', [\App\Http\Controllers\BudgetController::class, 'destroyPayment'])->name('payments.destroy');
-        
+
         // Category routes
         Route::post('/categories', [\App\Http\Controllers\BudgetController::class, 'storeCategory'])->name('categories.store');
         Route::patch('/categories/{category}', [\App\Http\Controllers\BudgetController::class, 'updateCategory'])->name('categories.update');
         Route::delete('/categories/{category}', [\App\Http\Controllers\BudgetController::class, 'destroyCategory'])->name('categories.destroy');
     });
-    
+
     // Logout route
     Route::post('/logout', function (\Illuminate\Http\Request $request) {
         Auth::logout();
