@@ -38,6 +38,50 @@ A comprehensive budget management system built with Laravel, featuring budgeting
 - **Totals & Ordering**: Totals for incoming/outgoing/net/remaining, occurrences ordered by date, then direction, then amount (desc)
 
 
+# Sticky Notes Application
+
+A comprehensive sticky notes system built with Laravel, featuring drag-and-drop functionality, mobile support, and user-specific boards.
+
+## Features
+
+- **Sticky Notes Management**: Create, read, update, and delete sticky notes
+- **Drag & Drop**: Move sticky notes around the board with mouse or touch
+- **Resizable**: Resize sticky notes by dragging the corner handle
+- **Mobile Support**: Full touch support for mobile devices (drag, resize, edit)
+- **Auto-Resize**: Sticky notes automatically resize to fit their content
+- **Color Options**: 8 predefined colors for visual organization
+- **User-Specific**: Each user has their own private sticky notes board
+- **Inline Editing**: Double-click to edit title and content directly
+- **Responsive Design**: Works seamlessly on desktop and mobile devices
+- **Smart Positioning**: Mobile-friendly positioning keeps notes within screen bounds
+
+## Sticky Notes Features
+
+### **Core Functionality**
+- **Add Notes**: Create new sticky notes with title, content, and color
+- **Edit Notes**: Modify existing notes through inline editing or modal
+- **Delete Notes**: Remove notes with confirmation
+- **Auto-Save**: All changes (position, size, content) saved automatically
+
+### **Interaction Features**
+- **Drag & Drop**: Move notes anywhere on the board
+- **Resize**: Adjust note dimensions (150px - 500px range)
+- **Touch Support**: Full mobile/tablet compatibility
+- **Keyboard Shortcuts**: Enter key saves, Escape closes modals
+
+### **Visual Features**
+- **8 Color Options**: Yellow, Red, Blue, Green, Purple, Orange, Gray, Light Yellow
+- **Smooth Transitions**: Hover effects and animations
+- **Mobile Visibility**: Action buttons always visible at 60% opacity on mobile
+- **Desktop Hover**: Buttons fade in on hover (30% → 100% opacity)
+
+### **Technical Features**
+- **User Isolation**: Each user sees only their own notes
+- **Responsive Layout**: Board fills available screen space
+- **Mobile Optimization**: Smart positioning prevents off-screen notes
+- **Cross-Platform**: Works on desktop, tablet, and mobile devices
+
+
 # Development Notes
 
 ## Prerequisites
@@ -142,6 +186,29 @@ A comprehensive budget management system built with Laravel, featuring budgeting
    - Each occurrence can be marked as paid individually
 5. Totals show Incoming, Outgoing, Net Leftover, and Remaining Unpaid
 6. Open Settings to choose pay period mode (weekly or monthly) and, for monthly, select a start day
+
+### Sticky Notes
+
+1. Navigate to the Sticky Notes page from the dashboard
+2. Click "Add Sticky" button to create a new note
+   - Enter title and content
+   - Choose a color from the 8 available options
+   - Click "Add Note" to save
+3. **Desktop Usage**:
+   - Drag notes by holding and moving the mouse
+   - Resize by dragging the bottom-right corner
+   - Hover to see edit/delete buttons
+   - Double-click title/content to edit inline
+4. **Mobile Usage**:
+   - Touch and hold to drag notes
+   - Touch the resize handle to adjust size
+   - Edit/delete buttons always visible (60% opacity)
+   - Double-tap to edit inline
+5. **Advanced Features**:
+   - Notes auto-resize to fit their content
+   - All changes saved automatically
+   - Smart positioning keeps notes within screen bounds
+   - Each user has their own private board
 
 ## Development
 
