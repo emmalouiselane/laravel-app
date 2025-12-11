@@ -52,6 +52,15 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/categories/{category}', [\App\Http\Controllers\BudgetController::class, 'destroyCategory'])->name('categories.destroy');
     });
 
+    // Sticky Notes routes
+    Route::prefix('sticky-notes')->name('sticky-notes.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\StickyNoteController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\StickyNoteController::class, 'store'])->name('store');
+        Route::put('/{stickyNote}', [\App\Http\Controllers\StickyNoteController::class, 'update'])->name('update');
+        Route::delete('/{stickyNote}', [\App\Http\Controllers\StickyNoteController::class, 'destroy'])->name('destroy');
+        Route::patch('/{stickyNote}/toggle-pin', [\App\Http\Controllers\StickyNoteController::class, 'togglePin'])->name('toggle-pin');
+    });
+
     // Logout route
     Route::post('/logout', function (\Illuminate\Http\Request $request) {
         Auth::logout();

@@ -51,7 +51,7 @@
         </div>
         <h2 class="text-xl font-semibold text-center mb-2">Welcome back, {{ $user->name }}!</h2>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
             <div class="bg-gray-50 p-4 rounded-lg text-center">
                 <p class="my-2">Daily planner with to-do list and habit tracker</p>
                 <a href="{{ route('planner.index') }}">
@@ -76,6 +76,20 @@
                         button_text_css="text-base"
                     >
                         {{ __('Monthly Budget') }}
+                    </x-bladewind::button>
+                </a>
+            </div>
+
+            <div class="bg-gray-50 p-4 rounded-lg text-center">
+                <p class="my-2">Digital sticky notes for quick reminders and ideas</p>
+                <a href="{{ route('sticky-notes.index') }}">
+                    <x-bladewind::button 
+                        type="primary"
+                        size="small"
+                        uppercasing="false"
+                        button_text_css="text-base"
+                    >
+                        {{ __('Sticky Notes') }}
                     </x-bladewind::button>
                 </a>
             </div>
