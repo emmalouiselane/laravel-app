@@ -49,37 +49,11 @@ A comprehensive sticky notes system built with Laravel, featuring drag-and-drop 
 - **Resizable**: Resize sticky notes by dragging the corner handle
 - **Mobile Support**: Full touch support for mobile devices (drag, resize, edit)
 - **Auto-Resize**: Sticky notes automatically resize to fit their content
-- **Color Options**: 8 predefined colors for visual organization
+- **Colour Options**: 8 predefined colours for visual organization
 - **User-Specific**: Each user has their own private sticky notes board
 - **Inline Editing**: Double-click to edit title and content directly
 - **Responsive Design**: Works seamlessly on desktop and mobile devices
 - **Smart Positioning**: Mobile-friendly positioning keeps notes within screen bounds
-
-## Sticky Notes Features
-
-### **Core Functionality**
-- **Add Notes**: Create new sticky notes with title, content, and color
-- **Edit Notes**: Modify existing notes through inline editing or modal
-- **Delete Notes**: Remove notes with confirmation
-- **Auto-Save**: All changes (position, size, content) saved automatically
-
-### **Interaction Features**
-- **Drag & Drop**: Move notes anywhere on the board
-- **Resize**: Adjust note dimensions (150px - 500px range)
-- **Touch Support**: Full mobile/tablet compatibility
-- **Keyboard Shortcuts**: Enter key saves, Escape closes modals
-
-### **Visual Features**
-- **8 Color Options**: Yellow, Red, Blue, Green, Purple, Orange, Gray, Light Yellow
-- **Smooth Transitions**: Hover effects and animations
-- **Mobile Visibility**: Action buttons always visible at 60% opacity on mobile
-- **Desktop Hover**: Buttons fade in on hover (30% → 100% opacity)
-
-### **Technical Features**
-- **User Isolation**: Each user sees only their own notes
-- **Responsive Layout**: Board fills available screen space
-- **Mobile Optimization**: Smart positioning prevents off-screen notes
-- **Cross-Platform**: Works on desktop, tablet, and mobile devices
 
 
 # Development Notes
@@ -192,7 +166,7 @@ A comprehensive sticky notes system built with Laravel, featuring drag-and-drop 
 1. Navigate to the Sticky Notes page from the dashboard
 2. Click "Add Sticky" button to create a new note
    - Enter title and content
-   - Choose a color from the 8 available options
+   - Choose a colour from the 8 available options
    - Click "Add Note" to save
 3. **Desktop Usage**:
    - Drag notes by holding and moving the mouse
